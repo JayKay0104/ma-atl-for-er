@@ -1,0 +1,273 @@
+Brand_x,Brand_y,Color_x,Color_y,Interface_x,Interface_y,Memory Speed_x,Memory Speed_y,Memory Type_x,Memory Type_y,Memory_x,Memory_y,Model_x,Model_y,Processor_x,Processor_y,Product Type_x,Product Type_y,Storage Capacity_x,Storage Capacity_y,cluster_id
+,['bx80677i57600k'],,,['6MB'],,"['No', '3.8GHz', 'DDR4 - 2133 / DDR3L - 1600']",,['ddr4 ddr3l controller'],['ddr4 controller integrated iris dx12 graphics 3 year warranty'],,,,,"['Intel HD 630', 'I5 7600K']",['quad core technology'],,,,,3116
+,,,,,,['DDR4 (PC4-17000)'],['25v'],,['vdimm'],,,,,,,,,,,4943
+,['skylake'],,,,,,"['usb3', '0 8x']",['ddr4 2 x usb3'],['usb3'],,,,['6th gen ddr4'],['i5 i3 6th gen atx'],,,,,,7417
+['ssi'],[],,,,,,,"['ddr4 sdram', 'supported dimm udimm rdimm 8']",,"['128 gb', '2 13 ghz']",,,,,,['processor support'],,,,11029
+['4096'],,,,,,,,,,,,['26 2tflops fp16 13 1tflops fp32'],,,,,['frontier'],,,12405
+['pci express'],['asus'],,,,,,,,,,,,,,,,['wireless ac pci express adapter'],,,13877
+,['1600mhz ram'],,['vdimm lifetime'],,,"['XMP, Vengeance LP Heatsink', 'DDR3 (PC3-12800)']",,,,,,,,,,,['corsair'],,,13883
+['mini itx'],,,,,,,,,,,,,,,,['2 year warranty'],"['mini cube', 'shaped case']",,,15193
+['750'],['corsair'],,,,,,,,,,,,,,,['profile sleeved cables'],"['hx series hx750', 'platinum certified fully modular', 'power supply']",,,25397
+['ddr4'],['3200mhz ram'],['lifetime warranty'],,,,"['3200mhz', 'DDR4 (PC4-25600)', 'XMP 2.0, Vengeance LPX Heatsink']",['35v'],,['vdimm'],,,,,,,,,,,28472
+"['quad core technology', 'quad core technology']",['quad core technology'],,,,,"['4.3GHz', '4.3GHz']",,"['ddr4 controller', 'ddr4 controller']","['ddr4 controller 3 year warranty', 'ddr4']",,,,,"['I7 7740X', 'I7 7740X']",,,,,,29892
+,['corsair'],,,,,['DDR4 (PC4-17000)'],,['speed'],['ddr4 so dimm pc4 17000'],,['4gb'],,,,,,,,['1x4gb'],32127
+['size'],['air'],"['Red, White Or Blue']",,,,,,,,,,,,,,,,,,33840
+['i7'],['intel'],,,,,,,,['ddr3 x1 pci e x16 x2'],,,,,['i5 i3 4th gen mini itx'],,,,,,34641
+,['backlit'],,,['usb 88 w'],,,,,,,,,,,['2560x1440'],,,['2560 x 1440'],,35654
+,['socket compatibility'],,,,,,,['104 65cfm max 40 dba max 5 year warranty'],,,,['Hydro Series H115i'],,,,,,,,36683
+,['socket'],,,,"['sata 6gb s', 'usb 3 0 2x usb']",,,['ddr4'],"['support 4x', 'ddr4 dimm 2x pcie x16']",,,,,,,,['1x pcie x1 4x'],,,37887
+,,,,,,,,,,,,,,,,"['and below', 'support silent no psu']","['microatx case', 'noise cancelling foam', 'lined front door and side panels from cooler master']",,,41568
+,['socket'],,,,,,,,,,,,,['amd socket'],,,,,,41903
+['xl atx'],['trailblazing design of'],['White + Black Trim'],"['White', 'White']",,,,,,,,,['Graphite 780T'],,,,"['and below', 'side panel water cooler support full']",['pc case features generous'],,,43099
+['quad core technology'],,,,['8MB'],,"['DDR4-1866/2133, DDR3L-1333/1600 @ 1.35V', 'No', '3.4GHz']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['Intel HD 530', 'I7 6700']",,['warranty'],,,,46900
+,['airflow'],,['year warranty'],,,,['1100 rpm'],['up 1100rpm'],,,,['MFY-F2DN-11NPC-R1'],['pwm 120mm 48 8 cfm'],,,,['gigabyte msi and asrock'],,,48996
+,['asrock'],,,,,,,['ddr3 sdram maximum ram o c'],,['32 gb'],,,,,,['1 x processor support'],,,,54922
+['3200mhz ram'],,['lifetime warranty'],,,,"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-25600)']",['35v'],,['vdimm'],,,,,,,,,,['3200mhz ram'],56456
+['ryzen 5'],,,,,,['3.20GHz'],,,['ddr4 controller 3 year warranty'],,,,,"['1400 4c', 'Amd Ryzen™']",['threads'],,['quad core with eight'],,,57290
+['atx'],['sleek'],['Black'],,,,,,,,,,"['gpu', 'Carbide 100R Silent Edition']",,,,"['and below', 'side panel water cooler support full', 'support silent no psu']",['looks like serious business while'],,,64089
+['2560 x 1440'],['led backlit'],['black'],['year warranty'],,,,,,,,,,['2560x1440'],,,,['time 1x'],,,64570
+['atx'],['skylake'],['way crossfirex'],,['2 x m 2 2 x pci e 3 0 x16'],,,,,,,,,['kabylake ddr4 2x pcie x16'],,,['b250 chipset'],,,,65645
+['mini itx'],"['elite', 'elite']",['Black'],,,,,,,,,,"['gpu', 'Elite 130']",,,,['support no psu'],,,,66196
+,,,,,"['sata 6gb s', 'sata pcie gigabit lan hd audio 6x', 'usb3 0 6x']",,['kabylake'],,['ddr4'],,,,,['i5 i3 7th gen atx'],,,,,,66894
+,,['lifetime warranty'],,,,"['2666mhz', 'Intel XMP 2.0 Memory Profile, Vengeance LPX Heat Spreader', 'DDR4 (PC4-21300)']",,,['vdimm'],,,,,,,,,,['2666mhz ram'],69938
+['atx'],['skylake'],,,['1 x pci e 3 0 x16'],['usb 3 0'],,,,,,,,['6th gen ddr4'],,,['z170 chipset'],['1x pcie x16'],,,69949
+,['socket'],,,,"['sata 6gb s', 'usb 2 0']",,,['ddr4'],['ddr4 dimm'],,,,,,,,['1x pcie x1 4x'],,,70222
+['ddr4'],['2666mhz ram'],['lifetime warranty'],,,,"['2666mhz', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-21300)']",['35v'],,['vdimm'],,,,,,,,,,,79457
+,['quad core technology'],,,['6MB'],,"['DDR4 - 2133 / DDR3L - 1600', 'No', '3.5GHz']",,['ddr4 ddr3l controller'],"['ddr3 ddr4 controller integrated iris dx12 graphics 3', 'ddr3 ddr4 controller integrated iris dx12 graphics 3']",,,,,"['I5 6600K', 'Intel HD 350']",,['warranty'],,,,83931
+['280mm'],['socket compatibility'],,,,,,,,,['113cfm max 43 dba max 5'],,['Hydro Series H110i'],,,,"['radiator mount', 'year warranty']",,,,84721
+,['corsair'],,,,,,,,,,,,,,,['year warranty'],"['rmx series power supplies give you', 'control quiet']",,,84945
+,['trailblazing design of'],['Black'],['Black'],,,,,,,,,['Graphite 780T'],,,,"['and below', 'side panel water cooler support full']",['pc case features generous'],,,86732
+[],['which'],,,,,,,,,,,,,,,,"['combines ek s', 'csq design', 'radiator core engine']",,,87656
+['ryzen 5'],['yd150xbbaebox'],,,,,['3.60GHz'],,,['ddr4 controller 3 year warranty'],,,,,"['4c', 'Amd Ryzen™']",['quad core with eight threads'],,,,,88058
+['atx'],,,,,,,,,,,,,,,,"['and below', 'side panel water cooler support full', 'support modular', 'no psu']",['optional accessories'],,,91590
+"['ddr4', 'ddr4']",,"['lifetime warranty', 'lifetime warranty']",,,,"['3200mhz', '3200mhz', 'DDR4 (PC4-25600)', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-25600)', 'XMP 2.0, Vengeance LPX Heatsink']",['35v'],,"['vdimm', 'vdimm']",,,,,,,,,,['3200mhz ram'],92366
+['atx'],['silencio'],,,,,,,,,,,['gpu'],,,,"['and below', 'side panel water cooler support full', 'support silent no psu']",['and rear'],,,92731
+"['motherboard', 'Antec']",['like'],,,['external 2 3 5'],,,,,,,,['NSK3100'],,,,['miniitx drive'],"['award winning predecessor', 'home or office', 'indirect intake vents']",,,96001
+,['case'],['Green'],,,,['2000 rpm'],,['green led'],,,,['SickleFlo 120'],['is becoming more essential'],,,['69 7 cfm'],['these days quality fans'],['120mm'],,96062
+['atx'],,,,,,,,,['kabylake ddr4'],,,,,,,['crossfirex'],,,,98374
+,,,,,,,,,,,,['Hydro Series H80i v2'],,,,"['radiator mount', 'year warranty']",,['120mm'],,98621
+,['corsair'],['Red'],,,,,,,,,,,,,,,,,,101004
+,['corsair'],,,,,,,,,,,['Semi-Modular'],,,,"['all japanese capacitors', 'fan 7 year warranty']",,,,101282
+,['air'],"['Red, White Or Blue']",,,,,,,,,,,,,,,,,,103298
+['sockets supported'],['socket compatibility'],,,,,,,,,,,,,,,,,,,104753
+['dual'],,,,['3MB'],,"['DDR4-1866/2400, DDR3L-1333/1600 @ 1.35V', 'No', '3.9GHz']",,['ddr4 ddr3l controller'],['ddr4'],,,,,"['Intel HD 630', 'I3 7100']",,,,,,106101
+['plus'],['corsair'],,,,,,,,,,,,,,,['fully modular corsair link enabled 7 year warranty'],['control virtually silent operation and a'],,,108669
+['superior'],,,,,,,,,,,,,,,['geforce gtx 1080 g1 gtx 1070 g1 and gtx 1060 g1 series graphics cards'],,,,,109289
+['atx'],,,,,,,,['ddr4 3 x pcie 3 0 x16'],,,,,,,,['quad channel'],,,['support for x series'],109916
+,['ct1050mx300ssd1 read speed'],,,,,,['530mb'],,,,,,,,,,,,,110798
+,['2560x1440'],['black silver'],,,,,,,,,,,,,,,,['2560 x 1440 qhd ips'],,111467
+['atx'],['skylake'],,,,,,,,['kabylake ddr4'],,,,,,,"['z270 chipset', 'nvidia sli crossfirex']",,,,113348
+[],,,,,,,,,['45cm'],,,,,,,,,,,116893
+['xl atx'],"['join', 'join']",,,,,,,,,,,,,,,['and below'],"['stryker case', 'stryker case']",,,117679
+['quad core technology'],['quad core technology'],,,['6MB'],['22nm'],"['3.2GHz', 'DDR3-1333/1600', 'No']",,['ddr3 controller'],['ddr3 controller integrated hd 4600 graphics 3'],['22nm integrated'],,,,"['I5 4460', 'Intel HD Graphics 4600']",,,,,,117860
+,,,,,,['3.6GHz'],,['ddr4 controller'],['ddr4'],,,,,"['I3 8100', 'Intel HD 630']",,['warranty'],,,,118519
+['240'],,,,,,,,,,,,,,,"['amd fm2 fm2', 'amd fm2 fm2']",,,['120mm'],,120254
+['write'],['asus'],,,,,,,,,,,,,,,,"['sdrw', 'external slimline']",,,125224
+,['2400mhz ram'],,,,,"['2400mhz', 'DDR4 (PC4-19200)', 'Intel XMP 2.0 Memory Profile, Vengeance LPX Heat Spreader']",,,['vdimm'],,,,,,,,,,,130212
+,['dgs'],,,,,,,,,,,,,,,['2 year'],,,,136028
+['2400mhz ram'],['2400mhz ram'],,,,,"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-19200)']",['20v'],,['vdimm'],,,,,,,,,,,136586
+['atx'],['carbide'],,,,,,,,,,,,,,,"['and below 7', 'watercooling support']",['angular hard'],,,141731
+['quad core technology'],,,,,,['4.0GHz'],,['ddr4 controller'],['ddr4 controller 3 year warranty'],,,,,['I5 7640X'],,,['4ghz clock'],,,143766
+,"['pre', 'pre']",,,,,['3.7GHz'],,['ddr4 controller'],"['0ghz capable hex', 'ddr4 controller integrated dx12 graphics 1', 'ddr4 controller integrated dx12 graphics 1', 'ddr4 controller integrated dx12 graphics 1', 'ddr4 controller integrated dx12 graphics 3']",,,,,"['Intel HD 630', 'I7 7800K']","['binned', 'binned', 'binned']",,"['year warranty', 'year warranty', 'year warranty']",,['bx80684i78700k hex'],144052
+,['graphite series'],['Black'],,,,,,,,,,['Graphite 230T'],,,,"['and below', 'side panel water cooler support no psu']",,,,145357
+,,['lifetime warranty'],,,,"['2666mhz', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-21300)']",['35v'],,['vdimm'],,,,,,,,,,['2666mhz ram'],147316
+['sata powered'],,,,['USB connectors (9 Pin)'],,,,,,,,,,,,['RGB LED Controller'],['fan controller'],,,150150
+,['3400mhz'],,,,,"['DDR4 (PC4-27200)', 'Intel XMP 2.0 Memory Profile Dominator DHX Platinum Heatsink Corsair Link Enabled']",['ram'],,,,,,,,,['lifetime warranty'],,['4x4gb'],,151053
+['size'],['corsair'],['White'],,,,,,,,,,,,,,,['air series led'],,,151079
+,['integrated'],,,,,"['866mhz', '4.1GHz']",['866mhz'],['Dual channel DDR3 800/1066/1333/1600MHz/1866MHz'],,,,,,"['amd radeontm r7 series graphics quad core technology', 'A10-7890k']",,,,,,151336
+,['ct275mx300ssd1 read speed'],,,,,,['530mb'],,,,,,,,,['years'],,,,155523
+['quad core technology'],['bx80684i38350k'],,,,,['4.0GHz'],,['ddr4 controller'],['ddr4 controller integrated dx12 graphics 3'],,,,,"['Intel HD 630', 'I3 8350K']",['quad core'],['warranty'],,,,155852
+['sockets supported'],,,,,,,,,,,,,,,['socket compatibility'],,,,,156451
+['quad core technology'],,,,['6MB'],,"['DDR4-1866/2133, DDR3L-1333/1600 @ 1.35V', '3.3GHz', 'No']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['I5 6600', 'Intel HD 530']",,['warranty'],,,,157750
+,,,,['4MB'],,['4.2GHz'],,['ddr4 ddr3l controller'],['ddr4 controller integrated iris dx12 graphics 1'],"['4 2ghz', '4mb l3']",,,,"['I3 7350K', 'Intel HD 630']",,,['year warranty'],,,160388
+['eight'],['eight'],,,['mb l2 cache'],['mb l2 cache'],['3.30GHz'],,['Dual channel DDR3 800/1066/1333/1600MHz'],,,,,,['8300'],,['unlocked multiplier'],['unlocked multiplier'],,,164345
+['530'],,,,,,,,,,,,,['92k 83k iops'],,,,['3d nand technology read'],,['525gb'],164737
+,,,,['6MB'],,"['DDR4-1866/2133, DDR3L-1333/1600 @ 1.35V', '2.7GHz', 'No']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['I5 6400', 'Intel HD 530']",,['warranty'],,,,169589
+['micro atx'],,,,,['usb 2 0'],,,,['ddr4 dimm 2x pcie x16 2x pcie x1 4x'],,,,,,,,,,,170151
+['write'],['asus'],['bdxl support'],,,['u'],,,,,,,,['power2go'],,,,,,,174468
+,,,,,,,,,['24 8db'],,,,,,,,,['120mm'],,180117
+['rev'],['akasa'],['latches'],,,['compact stackable'],,,,,,,,,,,,,,,186803
+,['led backlit'],,,,,,['10000000'],,,,,,['1920x1080'],,,['mpr ii'],,,,187144
+,['corsair'],,,,,,,,,,,,,,,['year warranty'],['control virtually silent operation and a'],,,187351
+['superior'],['ek fc1080 gtx'],,,,,,,,,,,,,,['geforce gtx 1080 strix gtx 1070 and gtx 1060 series graphics cards'],,,,,188351
+,['provides'],,['thermally controlled'],,,,,,,,,['Non-Modular'],,,,"['thermally controlled', 'year warranty']",,,,191757
+,['3000mhz ram'],['lifetime warranty'],,,,"['XMP 2.0, Anodized Aluminium Heatspreader', 'DDR4 (PC4-24000)']",['35v'],,['vdimm'],,,,,,,,,,,197725
+,,,,,['sata 6gb s'],,['kabylake'],['ddr4'],['ddr4'],,,,,,,['amd crossfire'],,,,204145
+['six'],['six'],,,,,"['4.20GHz', '4.20GHz']",,"['Dual channel DDR3 800/1066/1333/1600MHz', 'Dual channel DDR3 800/1066/1333/1600MHz']",,"['8mb l3', '8mb l3']","['8mb l3', '8mb l3']",,,"['6350', '6350']",,"['unlocked multiplier', 'unlocked multiplier']","['unlocked multiplier', 'unlocked multiplier']",,,204227
+['atx'],,,,,,,,,,,,,,,,['and below 7'],"['an elegant', 'freeform modular system technology']",,,205989
+['pci e'],['with'],,['range'],['standard pci e x4 slot'],,,,,,,,,,,,,['adapter card'],,,207897
+,['dual'],,,['4MB'],,"['DDR4-1866/2133, DDR3L-1333/1600 @ 1.35V', 'No', '3.8GHz']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['I3 6300', 'Intel HD 530']",,['warranty'],,,,211568
+['ddr4'],,['enabled lifetime'],,,['timings 1 20'],"['3000mhz', 'DDR4 (PC4-24000)', 'XMP DHX Cooling System']",['35v'],,['vdimm'],,,,,,,['warranty'],,,,213979
+,['corsair'],,,,,,,,,,,,,,,,['led'],['140mm 600 1350rpm 4'],,219695
+['ddr4'],,,,,,"['DDR4 (PC4-25600)', 'XMP 2.0, Vengeance LPX Heatsink']",['35v'],,['vdimm'],,,,,,,,,,['3200mhz ram'],230345
+['size'],['corsair'],['Red LED'],,,,,,,,,,,,,,,['air series led'],,,232876
+,['corsair'],['Blue'],,,,,,,,,,,,,,,,['120mm'],,234720
+"['motherboard', 'Corsair']",['graphite'],,,,,,,,,,,"['support mini itx', '760T']",,,,['microatx atx e atx'],,,,237635
+,['cx650'],,['thermally controlled'],,,,,,,,,['Non-Modular'],,,,,['provides 80'],,,240301
+['240'],['socket compatibility'],,,,,['73cfm max 37 7'],,['2700 rpm'],,,,['Hydro Series H105'],,,,"['radiator mount', 'pwm fans']",,,,247425
+,['corsair'],['RGB (Red/Green/Blue Customisable)'],,,,,,,['rgb led'],,,,['sp120'],,,['customisable'],['includes controller'],,,252470
+,,,,,,,,,,,,,,,,['year warranty'],,,,254250
+['thin'],,,,,,,,,,,,,,,,,['filters keep dust'],,,254479
+,['corsair'],,,,,,,,,,,,,,,['warranty'],['cs modular series deliver 80'],,,257081
+,['corsair'],,,,,,,,,,,,,,,,['delivers'],['120mm'],,258060
+,['socket'],,,,,,,,,,,['Hydro Series H100i v2'],,,,['year warranty'],,,,259436
+['corsair'],['obsidian'],['Black'],,,,,,,,,,"['obsidian series 750d', 'Obsidian 750D']",,,,"['side panel water cooler support full', 'support no psu']",['pc case'],,,262434
+"['motherboard', 'BitFenix']",['latest'],['Black'],,,,,,,,,,,,['bays'],,"['support mini itx', 'microatx drive']","['combines an elegantly modern outlook', 'like no other']",,,263643
+,['3000mhz ram'],['lifetime warranty'],,,['timings 1 20'],"['DDR4 (PC4-24000)', 'XMP 2.0, Vengeance LPX Heatsink']",['35v'],,['vdimm'],,,,,,,,,,,267626
+,,,,,,['2400 mhz'],['25v'],"['ddr4 sdram', 'ddr4 2400 pc4 19200 1 20 v']",['vdimm'],,,,,,,,,,,276306
+,,,,,['compact profile and semi modular cables'],,,,,,,,,,,['bronze semi modular 3 year warranty'],,,,276354
+,,,,,['sata ports'],,,['ddr4 4 x pcie 3 0 x16'],,,,,,,,['quad channel'],,,['support for x series'],278206
+,['fd8370frhkhbx eight'],,,,['mb l2 cache'],"['4.00GHz', '4.00GHz']",,"['Dual channel DDR3 800/1066/1333/1600MHz', 'Dual channel DDR3 800/1066/1333/1600MHz']",,"['8mb l3', '8mb l3', '8mb l3', '8mb l3']",,,,"['8370', '8370']",,"['unlocked multiplier', 'unlocked multiplier', 'unlocked multiplier', 'unlocked multiplier']",['unlocked multiplier'],,,278247
+,['support'],,,,,,,['ddr4'],,,,,,,,,,,,281602
+,['amd'],,,,,"['800mhz', '3.8GHz']",,"['128 graphics cores', 'Dual channel DDR3 800/1066/1333/1600MHz/1866MHz']",,,,,,"['amd radeontm hd', 'A4-7300']",['8470d 800mhz 65w cpu 2'],,,,,281798
+['amd radeontm r7'],,,,['384 graphics cores'],,"['720mhz', '3.5GHz']",['720mhz'],['Dual channel DDR3 800/1066/1333/1600MHz/1866MHz'],,,,,,['A10-7770K'],,,,,,285905
+,['socket compatibility'],,,,,,,,,,,['Hyper 212 EVO'],,,,,,,,290339
+,['combined'],,,"['100', '1 x wan port 2 x usb 6']",,,,,,,,,,,,,,['802 11'],,291845
+['1333mhz ram'],['1333mhz ram'],['vdimm lifetime'],,,,"['XMP, XMS3 Heatsink', 'DDR3 (PC3-10600)']",['60v'],,['vdimm'],,,,,,,['warranty'],,,,293174
+['atx'],['when'],['Military Green'],,,,,,,,,,['Vengeance C70'],,,,"['and below', 'side panel water cooler support full', 'support no psu']",['pc case'],,,296762
+,['aurora'],['Black'],,,,,,,,,,"['gpu', 'Aurora']",,,,"['certified tempered glass', 'side panel water cooler support full', 'support no psu']",['aesthetically pleasing builds'],,,298834
+['keys wired'],['three'],,,,,,,,,,,['usb 2 0'],,,,,"['zone dynamic rgb backlighting', 'detachable wrist rest']",,,299715
+['rev'],['akasa'],,,,['compact stackable'],,,,,,,,,,,,,,,305414
+['rev'],['akasa'],,,,['compact stackable'],,,,,,,,,,,,,,,306209
+,['corsair'],['White'],,,,,,,,,,,,,,,,['120mm'],,307669
+,['quiet cool'],['Black'],,,,,,,,,,['Carbide 600C'],,,,"['and below', 'side panel water cooler support full', 'support no psu']",['massive panoramic window panel'],,,309255
+,,,,,,['2400 mhz'],['2400mhz ram'],"['ddr4 sdram', 'ddr4 2400 pc4 19200 1 20 v']",['vdimm'],,,,,,,,,,,316870
+,,,,,,,,,,,,,['92k 83k iops'],,,,['3d nand technology read'],,['2tb'],323944
+['ryzen 5'],,,,,['14nm finfet'],['3.40GHz'],,,['ddr4 controller 3 year warranty'],,,,,['Amd Ryzen™'],['threads'],,,,,326104
+['ddr4'],['3600mhz'],['lifetime warranty'],,,,"['3600mhz', 'cl18', 'Vengeance RGB', '16GB Kit (2 x 8GB)', 'DDR4']",,,,,,,,,,,,,,328644
+,,,,,,,['kabylake'],['ddr4'],['ddr4'],,,,,['i5 i3 7th gen micro atx'],,,,,,331405
+['ddr4'],['2666mhz ram'],,,,,"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-21300)']",,,['vdimm'],,,,,,,,,,,344094
+['1920 x 1080'],,,,,,,['1920x1080'],,,,,,,,,,,['16 9'],,352362
+,['led backlit'],['mpr ii'],,['black'],,,['10000000'],,,,,,['1920x1080'],,,,,['16 9'],,352905
+,['corsair'],['RGB (Red/Green/Blue Customisable)'],,,,,,,,,,,,,,['customisable'],,,,353330
+['ddr3'],,,,,,"['2400mhz', 'XMP, Vengeance Pro Heatsink', 'DDR3 (PC3-19200)']",['65v'],,['vdimm'],,,,,,,['warranty'],,,,357702
+['core technology'],['hex'],,,,,['3.5GHz'],,['ddr4 controller'],['ddr4 controller 3 year warranty'],,,,,['I7 7800X'],,"['quad channel', 'warranty']",['core technology'],,,357712
+['ddr4'],,['lifetime warranty'],,,,"['2666mhz', 'DDR4 (PC4-21300)', 'XMP 2.0, Vengeance LPX Heatsink']",['35v'],,['vdimm'],,,,,,,,,,['2666mhz ram'],361893
+,['amd'],,,,,,,['ddr3 4 x usb3'],,,,,,,,,,,,363268
+['support sockets'],,,,,,,,,,,,['HYPER 612 Ver. 2'],,,['socket compatibility'],,,,,363343
+,['all'],,,,,,,,,,,,,,,,['cooler water cooler compatible'],['92mm'],,364445
+['quad core'],,,,,,['3.6GHz'],['757mhz'],['Dual channel DDR3 800/1066/1333/1600MHz/1866MHz'],,,,,,"['radeon r7 757mhz', 'A10-7860K']",,['gpu clock'],['gpu clock'],,,369743
+['atx'],['skylake'],,,,,,,,,,,,['kabylake ddr4'],,['8x usb3 0 5x'],"['z270 chipset', 'nvidia sli crossfirex']",,,,376817
+['multiple'],,,,,,,,,,,,,,['amd radeon vega base graphics cards'],['amd radeon vega based graphics cards'],,,,,379274
+,,,,,,"['DDR3 (PC3-12800)', 'XMP, Vengeance Heatsink']",['1600mhz ram'],,['sodimm'],,,,,,,['lifetime warranty'],,['1600mhz ram'],,384181
+,['3200mhz ram'],,['vdimm lifetime'],,,"['XMP 2.0, Anodized Aluminium Heatspreader', 'DDR4 (PC4-25600)']",,,,,,,,,,,,['ddr4 3200mhz'],,385888
+['i7'],['skylake'],,,,,,,['ddr4 2 x usb3'],,,,,,['i5 i3 7th gen atx'],['kabylake ddr4'],,,,,397948
+,['corsair'],,,,,,,,,,,['Semi-Modular'],,,,"['all japanese capacitors', 'fan 7 year warranty']",,,,398113
+['sockets supported'],['intel'],,,,,,,,,,,,,,,,,,,398716
+,['quad core'],,,['8MB'],,"['DDR4 - 2133 / DDR3L - 1600', 'No', '4.0GHz']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['Intel HD 530', 'I7 6700K']",,['warranty'],,,,409402
+,['corsair'],,,,,,,,,,,,,,,['and below'],['enough space for'],,,414102
+['eight'],['octo'],,,,,['3.6GHz'],,['ddr4 controller'],['ddr4 controller 3 year warranty'],,,,,['I7 7820X'],,"['core technology', 'quad channel', 'warranty']",['core technology'],,,424364
+['displays'],,['year warranty'],,,,,,,,,,,,,['ati'],,,,,424897
+['micro atx'],['carbide series'],['Black'],,,,,['88r'],,,,,['Carbide 88R'],,,,"['and below', 'side panel water cooler support no psu']","['microatx mid tower has', 'sized graphics cards and power supplies']",,,426331
+['atx'],,,,,,,,,"['support 4x', 'ddr4 dimm 2x pcie x16 4x pcie x1 6x sata']",,,['ddr4'],,,['socket'],,,,,447765
+,['constant development of hardware getting'],['Blue'],,,,,,['700 rpm'],,,,['MegaFlow 200'],,,,,,['200mm 110 cfm'],,448278
+,['unconventional design of carbide series'],['Black'],,,,,,,,,,['Carbide Air 540'],,,,"['and below', 'side panel water cooler support full']",['way'],,,453176
+,,,,,,,,,,,,['Non-Modular'],,,,,,,,454571
+['plus'],['corsair'],,,,,,,,,,,,,,,['fully modular corsair link enabled 7 year warranty'],['control virtually silent operation and a'],,,461067
+['ddr4'],['2666mhz ram'],['lifetime warranty'],,,,"['2666mhz', 'RED Led, XMP 2.0', 'DDR4 PC4-21300']",,,['vdimm'],,,,,,,,,,,462842
+[],['icy dock'],,,,,,,,,,,,['mb881u3 1sa sata ide'],,,,['docking stand'],,,469200
+['ddr4'],['3000mhz ram'],['lifetime warranty'],,,,"['3000mhz', 'XMP 2.0, Anodized Aluminium Heatspreader', 'DDR4 (PC4-24000)']",,,,,,,,,,,['vdimm lifetime warranty'],,,478378
+['atx'],['carbide series'],['Black'],,,,,,,,,,"['gpu', 'Carbide 200R']",,,,"['and below', 'side panel water cooler support full', 'support no psu']",,,,492013
+,['corsair'],['Red'],,,,,,,,,,,['pro led delivers'],,,,,,,502282
+['ddr4'],['3000mhz ram'],['lifetime warranty'],,,,"['3000mhz', 'XMP 2.0, Anodized Aluminium Heatspreader', 'DDR4 (PC4-24000)']",,,,,,,,,,,,,,505997
+['size'],['corsair'],['Red LED'],,,,,,,,,,,,,,,['air series led'],,,507079
+['240mm'],['socket compatibility'],,,,,,,,,,,['Kuhler H1200 Pro'],,,,['radiator mount'],,,,510950
+,,,,,,,,,,,,,['rgb led'],,['corsair'],,,['140mm 600 1350rpm 4'],,518431
+,,,,,['timings 1 20'],"['DDR4 (PC4-25600)', 'XMP 2.0, Anodized Aluminium Heatspreader']",,['ddr4'],,,,,,,,,,,['3200mhz ram'],520009
+,,,,,['sata 6gb s'],,,['ddr4 4 x usb3'],,,,,['6th gen ddr4'],['i5 i3 6th gen micro atx'],,,"['1x pcie x16 2x pci e x1 4x', 'usb3 0 6x']",,,530527
+,,,,,,,,['ddr4 4 x pcie 3 10 x16'],,,,,,,,['quad channel'],,,,533520
+['usb'],['robust'],,['etched keys'],,,,,,,,,,,,,,,,,533603
+['size'],['corsair'],['Blue'],,,,,,,,,,,,,,,['air series led'],,,550270
+['1600mhz ram'],['1600mhz ram'],,['5v'],,,"['DDR3 (PC3-12800)', 'XMP, Ballistix Sport Heatsink']",,,,,,,,,,,,,,552321
+['sockets supported'],,,,,,,,,,,,,,,['intel'],,,,,552594
+,['integrated hd'],,,['192 graphics cores'],,"['800mhz', '3.9GHz']","['800mhz', '2400 support 65w tdp']",['Dual channel DDR3 800/1066/1333/1600MHz/1866MHz'],['cores ddr3'],,,,,"['amd radeontm hd', 'A6-6400K']",,,['3 year warranty'],,,554689
+,['2400mhz'],,,,,"['cl13', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-17000)']","['35v', '20v']",,"['vdimm', 'vdimm']",,,,,,,['lifetime warranty'],,,,560257
+['sockets supported'],['socket compatibility'],,,,,,,,,,,['56 81 cfm'],,,,,,,,563029
+,,,,['SATA 6Gb/s'],,,['550mb'],,,,,,,,,,['warranty'],,,566246
+['atx'],,['way crossfirex'],,['2 x m 2 2 x pci e 3 0 x16'],['sata 6gb s'],,['kabylake'],,['ddr4'],,,,,,,['b250 chipset'],,,,568241
+['quad core technology'],,,,,,['4.0GHz'],,['ddr4 controller'],['ddr4'],,,,,['I5 7640X'],,,,,,569605
+,['vega frontier'],,,,,,,,,,,['26 2tflops fp16 13 1tflops fp32'],,,,,,,,580592
+['ddr4'],['3000mhz ram'],,,,['timings 1 20'],"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-24000)']",['35v'],,['vdimm'],,,,,,,,,,,587259
+,['socket compatibility'],,,,,,,,,['94cfm max 35'],,['Hydro Series H90'],,,,"['radiator mount', 'year warranty']",,['140mm'],,595946
+['intel'],['socket compatibility'],,,,,,,,,,,"['lga 2066 2011 v3', 'MAY-T4PN-220PK-R1']",,['amd am3'],,,,,,596100
+,['dual'],,,['256 graphics cores'],,"['756mhz', '3.5GHz']",,['Dual channel DDR3 800/1066/1333/1600MHz/1866MHz'],['ddr3 1866 support 65w tdp 3 year warranty'],,,,,"['amd radeontm r5 graphics dual core technology', 'A6-7400K']",,['gpu clock'],,,,610055
+['size'],"['wide', 'wide']","['Red, White Or Blue']",,,,,,,,,,,,,,,,,,615864
+['support'],['socket compatibility'],,,,,,,,,,,,,,,,,,,630453
+,['dual'],,,['3MB'],['22nm'],"['DDR3-1333/1600', 'No', '3.6GHz']",,['ddr3 controller'],"['ddr3 controller integrated hd', 'ddr3 controller integrated hd']",['22nm integrated hd'],,,,"['dual core technology', 'Intel HD Graphics 4400', 'I3 4160']",,['warranty'],,,['22nm'],636041
+['ten'],,,,,,['3.3GHz'],,['ddr4 controller'],['ddr4'],,,,,['I9 7900X'],,['core technology'],,,,637376
+['customisable'],['corsair'],['RGB (Red/Green/Blue Customisable)'],,,,,,,,,,,,,,,,,,653454
+,,['enabled lifetime'],,,['timings 1 20'],"['DDR4 (PC4-24000)', 'XMP 2.0, Dominator Platinum Heatsink, Corsair Link Compatible']","['3000mhz ram', '35v']",['3000mhz'],['vdimm'],,,,,,,['warranty'],,,,658371
+['atx'],['carbide'],,,,,,,,,,,,,,,"['and below 7', 'watercooling support']",['angular hard'],,,661581
+['ryzen threadripper'],,,,,,['40mb'],,['180w str4'],['ddr4'],,,['1950x 16c'],,,,,,,,662806
+,['quad core technology'],,,['6MB'],,"['DDR4-1866/2133, DDR3L-1333/1600 @ 1.35V', 'No', '3.2GHz']",,['ddr4 ddr3l controller'],['ddr3 ddr4 controller integrated iris dx12 graphics 3'],,,,,"['Intel HD 530', 'I5 6500']",,,,,,665409
+,['450'],,,['SATA 6Gb/s'],,,,,,,,,,,,,,,,667772
+,"['wide', 'the']","['Three colored rings in red, blue, and white']",,,,,,,,,,,,,,,,,,680688
+['ddr4'],['2666mhz'],['lifetime warranty'],,,,"['2666mhz', 'DDR4 (PC4-21300)', 'XMP 2.0, Vengeance LPX Heatsink']",,,,,,,,,,,['vdimm lifetime warranty'],,,682719
+,,,,,"['sata 6gb s', 'usb 3']",,,['ddr4 2 x dimm 1 x pcie 3 0 x16'],['ddr4 dimm'],,,,,,,,['1x pcie x1 4x'],,,687664
+['unmatched'],['available'],,,,,,,,,,,,,,,['modular design'],,,,723670
+['nickel design passive'],['aesthetic'],,,,,,,,,,,['of vrm s'],,,,,['retention'],,,725209
+,,"['Black', 'Black']",['from our'],,,,,,['sp120 rgb'],,,"['gpu', 'gpu', 'gpu', 'gpu', 'Crystal Series 460X RGB', 'Crystal Series 460X RGB']",,,,"['and below', 'and below', 'side panel water cooler support full', 'side panel water cooler support full', 'support no psu', 'support no psu', 'and below', 'and below', 'side panel water cooler support full', 'side panel water cooler support full', 'support no psu', 'support no psu']","['engineered', 'led fans']",,,748467
+,['we ve'],['Black'],,,,,,,,,,['Carbide 400Q V2'],,,,"['gpu', 'support silent no psu']","['engineered', 'steel case design']",,,749820
+['i7'],['intel'],,,,,,,['ddr3 4 x usb3 8 x usb2 2 x sata3 2 x sata2'],['ddr3 x1 pci e x16 x3 pci e x1 x2'],,,,,['i5 i3 4th gen micro atx'],,,,,,753561
+[],,,,,,,,,['a'],,,,,,,,,,,754356
+,,,,,,"['Vengeance RGB', '32GB (2x16GB)', 'DDR4']",,,,,,,,,,,,,['3200mhz ram'],761460
+"['motherboard', 'BitFenix']",['introducing'],['Black/Blue'],,,"['side', 'window and', 'front led']",,,,,,,['support mini itx'],,,,['microatx atx drive bays'],,,,770644
+,['corsair'],['Tempered Glass'],,,,,,['support 370'],,,,['Crystal 570x RGB'],,,,,['enough space for'],,,772970
+['atx'],['graphite series 230'],['Black'],,,,,,,,,,['Graphite 230T'],,,,"['and below', 'side panel water cooler support no psu']",,,,773101
+['ddr4'],['2400mhz'],,,,,"['2400mhz', 'DDR4 (PC4-19200)', 'XMP 2.0, Vengeance LPX Heatsink']","['ram', '20v']",,['vdimm'],,,,,,,,,,,779502
+,['dir 868l'],,,,,,,,,,,,,,,,,,,798340
+['3000mhz'],,,,,['timings 1'],"['Intel XMP 2.0 Memory Profile, Vengeance LPX Heat Spreader', 'DDR4 (PC4-24000)']",['35v'],,['vdimm'],,,,,,,,,,['3000mhz ram'],810298
+['eight'],['eight'],,,,,['4.00GHz'],,['Dual channel DDR3 800/1066/1333/1600MHz'],,['8mb l3'],['8mb l3'],,,['8350'],,['unlocked multiplier'],['unlocked multiplier'],,,814170
+,,,,,['timings 1 20'],"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-21300)']",['35v'],,['vdimm'],,,,,,,,,,['2666mhz ram'],817800
+,['2400mhz'],,,,,['2400 mhz'],"['ram', '25v']",['ddr4 2400 pc4 19200 1 20 v'],['vdimm'],,,,,,,,,,,820736
+,['airpressure'],,['year warranty'],,,,['650 1550 rpm'],,,,,,,['4x Tap Screw'],['pwm'],,['gigabyte msi and asrock'],['140mm 4 pin pwm rgb led 3 modes up 1500rpm'],,828867
+['ddr4'],,['lifetime warranty'],,,,"['2666mhz', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-21300)']",['35v'],,['vdimm'],,,,,,,,,,['2666mhz ram'],831263
+['superior'],,,,,,,,,,,,,,,['geforce gtx 1080 strix gtx 1070 and gtx 1060 series graphics cards'],,,,,838616
+['size'],['air'],"['Red, White Or Blue']",,,,,,,,,,,['sp120'],,,,['improved heatsink'],,,845085
+,,,,,,,,,,,,,,,,,['delivers unrivaled performance and silence by'],['140mm'],,848042
+,['corsair'],,,,,,,,,,,,['ll series rgb led'],,,['pwm'],,['120mm'],,848585
+['ddr4'],,,,,,"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-28800)']",['35v'],,['vdimm'],,,,,,,,,,"['3600mhz ram', '3600mhz ram']",852239
+['ddr4'],,,,,,"['XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-25600)']",['35v'],,['vdimm'],,,,,,,,,,,863888
+['ten'],['deca core technology'],,,,,['3.3GHz'],,['ddr4 controller'],['ddr4 controller 3 year warranty'],,,,,['I9 7900X'],,"['core technology', 'warranty']",,,,882194
+['1333mhz ram'],['1333mhz ram'],['vdimm lifetime'],,,,"['XMP, XMS3 Heatsink', 'DDR3 (PC3-10600)']",,,,,,,,,,['warranty'],['corsair'],,,883200
+,,['seek time'],,"['5ms', 'SATA 6Gb/s']",['sata 6gb s'],,"['7200rpm', '7200rpm']",,,,,,"['sata 6gb s', 'sata 6gb s']",,,['1 year warranty'],"['2 year warranty', '2 year warranty', '2 year warranty']",['2tb'],"['2tb', '2tb', '2tb']",884781
+['sockets'],['strong'],,,,['intel 2066 2011 v3'],,,,['amd str4 sp3'],,,,,,,,"['tower cooler from arctic', 'pwm fan compatible with']",['200w tdp'],,917416
+,['corsair'],,,,,,,,,,,['Semi-Modular'],,,,"['all japanese capacitors', 'fan 7 year warranty']",,,,959885
+,['corsair'],,,,,,,,,,,,,,,['warranty'],"['rmx series power supplies give you extremely tight voltage', 'control quiet']",,,972468
+['ddr4'],,['lifetime warranty'],,,,"['3000mhz', 'White Led, XMP 2.0', 'DDR4 PC4-24000']","['3000mhz ram', '35v']",,['vdimm'],,,,,,,,,,,988272
+,,,,,,"['DDR4 (PC4-25600)', 'XMP 2.0, Anodized Aluminium Heatspreader']",,,['vdimm'],,,,,,,,,['ddr4 3200mhz'],['3200mhz ram'],998411
+['3000mhz'],,['lifetime warranty'],,,['timings 1 20'],,['35v'],,['vdimm'],,,,,,,,,,['3000mhz ram'],1000663
+,['hxi'],,,,,,,,,,,,,,,['warranty'],"['series power supplies give you', 'control virtually silent operation and a']",,,1016829
+,['corsair'],['RGB (Red/Green/Blue Customisable)'],,,,,,,,,,,,,,['customisable'],,,['sp120 rgb led 120mm'],1047981
+,['carbide series'],['Black'],,,,,,,,,,"['gpu', 'Carbide 330R']",,,,"['and below', 'side panel water cooler support full', 'support no psu']",['great case'],,,1093996
+['raid supported'],['raid 0'],,,,,,,,,,,,,,,,,,,1109678
+,['3000mhz ram'],,['vdimm lifetime'],,['timings 1 35'],"['Vengeance RGB', '16GB (2x8GB)', 'DDR4']",,,,,,,,,,,,,,1110373
+['Icy Box'],,,,,,,,,,,,['IB-AC6034-U3'],,,,,,,,1126034
+,,,['vdimm lifetime'],,,"['DDR4', '32GB Kit (2 x 16GB)', 'Vengeance RGB']",,,,,,,,,,,,['ddr4 3200mhz'],['3200mhz ram'],1142492
+,['led backlit'],,,,,,['200000000'],,,['100 2yr'],,,['1920x1080'],,,['aspect 1920x1080'],,['16 9'],,1169331
+,['1600mhz ram'],,,,,"['DDR3 (PC3-12800)', 'XMP, XMS3 Heatsink']",['65v'],,['vdimm'],,,,,,,,,['1600mhz ram'],,1177398
+,,,,,['wireless internet connectivity wireless ac dual band'],,,['ieee 802'],,,,,,,,,,,,1181799
+,['2666mhz'],['lifetime warranty'],,,['timings 1 20'],"['DDR4 (PC4-21300)', 'Intel XMP 2.0 Memory Profile Dominator Platinum Heatsink Corsair Link Enabled']",['25v'],['speed'],['vdimm'],,,,,,,,,['2666mhz ram'],,1183531
+,['built'],,,,,,,,,,,,,,,['mx silent gaming'],,,,1187811
+,['pci e card'],,,['usb 3 0 port s'],,,,,,,,,,,,['usb port s'],,,,1245099
+,,,,,,,,,,,,,,['amd radeon vega base graphics cards'],['amd radeon vega based graphics cards'],,,,,1275737
+,['2400mhz'],,,,,['2400 mhz'],"['ram', '25v']","['ddr4 sdram', 'ddr4 2400 pc4 19200 1 20 v']",['vdimm'],,,,,,,,,,,1305827
+,,,,,,,,,,,,,,,,['blue led 1200rpm'],['mountings'],,,1326292
+,['minimalist'],['Black'],,,,,,,,,,['Carbide 600Q'],,,,"['gpu', 'support silent no psu']",['modern design engineered'],,,1360395
+['atx'],['corsair'],,,,,,,,,,,,,,,['and below'],['enough space for'],,,1391917
+['hdmi'],['led backlit'],,,,,,,,,,,,,,,,"['time 1x', '2 year warranty']",,,1392510
+,['cx750'],,,,,,,,,,,['Non-Modular'],,,,,,,,1400150
+['size'],['wide'],"['Red, White Or Blue']",,,,,,,,,,,,,,,,,,1403793
+,,,,,,['3333mhz'],,,,"['32gb 4', '8gb rgb']",,,,,,,,,,1432408
+['plexi'],,,,,,,,,,,,,,,['nvidia geforce gtx 1080 ti graphics card based on pascal architecture'],['nickel deisgn full cover'],,,,1524730
+,['yd160xbcaewof'],,['ddr4 controller 3 year warranty'],,,['3.60GHz'],,,,,,,,['Amd Ryzen™'],['threads'],['95w am4'],,,,1596635
+['atx'],['carbide'],,,,,,,,,,,,,,,"['and below 7', 'watercooling support']",['angular hard'],,,1610428
+,['2400mhz ram'],,,,,"['2400mhz', 'XMP 2.0, Vengeance LPX Heatsink', 'DDR4 (PC4-19200)']",['35v'],,['vdimm'],,,,,,,,,,,1641184
+['high performance'],,,,,,,,,,,,,,['amd radeon vega based graphics cards'],,['full cover waterblock'],['based graphics cards'],,,1659979
+['nvidia'],,,['black'],,"['mini itx', 'side panel']",,,,,,,,,,,"['theme design', 'atx water']",['micro atx'],,,1720105
+,['intel'],,,,,,,,,,,['C40'],,,,,,,,1769010
+['lga'],['intel'],,,['lga1366 lga1156 lga1155'],,,,,,,,['C400'],,,,['a4'],,,,8118094
+,['intel'],,,,,,,,,,,['A30'],,,,,,,,8118095
+"['motherboard', 'Antec']",['antec'],,['br img'],,,,,,,,,"['support mini itx', 'P280']",,,,['microatx atx'],['p280 gun'],,,8390725
+['unmatched'],,,,,,,,,,,,,,,,['modular design'],['available'],,,12362782
+['copper'],['available'],,,,,,,,,,,,,,,['plexi design fits'],,,,12362810
