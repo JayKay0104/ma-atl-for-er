@@ -148,10 +148,11 @@
 **/_archive
 **/logging
 **/matching_pairs
+**/graphics
 
-#exclude html files and json for now
+#exclude html files and pictures for now
 *.html
-*.json
+# *.json
 *.png
 *.jpg
 *.pdf

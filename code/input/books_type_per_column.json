@@ -1,0 +1,8 @@
+{
+  "author": "str",
+  "binding": "custom",
+  "pages": "num",
+  "pubdate": "date",
+  "publisher": "str",
+  "title": "str"
+}

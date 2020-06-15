@@ -100,6 +100,10 @@ def iwe_BasedOnPredictProba(X,Z,classifier='lr'):
     return weights_source
 
 
+#### FOLLOWING CODE FROM https://github.com/wmkouw/libTLDA/blob/master/libtlda/iw.py #######
+#### it belongs to the libtlda domain adaptation package. Slightly modefied to fit the requirements here
+#### it was done so that the whole package due to version conflicts of packages does not need to be installed.
+
 #%%
 def is_pos_def(X):
     """Check for positive definiteness."""

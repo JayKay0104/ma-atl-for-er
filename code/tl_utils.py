@@ -18,13 +18,110 @@ from IPython.display import display
 
 #%%
             
+#def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators,selected_da_weighting,candsets,
+#                  candsets_super_results,candsets_unsuper_results,plot_target,path_for_output=None):
+#    
+#    x=[0,10,14,20,24,28,32,38,44,50,60,70,80,90,100,120,140,160,180,200,300,500]
+#    d = tl_results
+#    
+#    combo = '{}_{}'.format(source_name,target_name)
+#    fig,ax = plt.subplots(figsize=(16,8))
+#    plt.subplots_adjust(right=0.7)
+#    plt.close(fig)
+#    props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+#    # unsupervised bm plot
+#    y_target_unsup_bm = list(itertools.repeat(candsets_unsuper_results[target_name],len(x)))
+#    ax.plot(x,y_target_unsup_bm,linestyle='dashdot',color='g',lw=2,label='target unsupervised (elbow) benchmark. F1: {}'.format(round(candsets_unsuper_results[target_name],2)))
+#    ax.set_xlabel('x target instances used for training',fontsize=12)
+#    ax.set_ylabel('Avg. F1-Score',fontsize=12)
+#    
+#    colors = ['b','r','y','c','m','k']
+#    for da in selected_da_weighting: 
+#        if selected_estimators is None:
+#            for i,clf in enumerate(d[combo][feature]):
+#                n = d[combo][feature][da][clf]['n_runs']
+#                # insert first result of transfer one more time at beginning to also plot point when x = 0.
+#                y_transfer_results = d[combo][feature][da][clf]['y_transfer_results'].copy()
+#                y_transfer_results.insert(0,y_transfer_results[0])
+#                transfer_result_avg = round(np.mean(y_transfer_results),2)
+#                # insert 0 at beginning to the plot beginns at origin
+#                y_target_results = d[combo][feature][da][clf]['y_target_results'].copy()
+#                y_target_results.insert(0,0)
+#                ax.plot(x,y_transfer_results,linewidth=2,
+#                        label='transfer learning results ({}) when trained on all {} source instances. F1: {}'.format(clf,candsets[source_name].shape[0],transfer_result_avg),
+#                        color=colors[i%len(colors)])
+#                if(plot_target):
+#                    ax.plot(x,y_target_results,linewidth=2,linestyle='dashed',
+#                            label='target results ({}): trained on x target instances'.format(clf),
+#                            color=colors[i%len(colors)])
+#                    if(not math.isnan(float(d[combo][feature][da][clf]['x_target_exceed']))):
+#                        idx = x.index(d[combo][feature][da][clf]['x_target_exceed'])
+#                        ax.plot(x[idx], y_target_results[idx], 'ro') 
+#                # benchmark plots
+#                # supervised
+#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
+#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+#                        color=colors[i%len(colors)])
+#        else:
+#            for i,clf in enumerate(selected_estimators):
+#                n = d[combo][feature][da][clf]['n_runs']
+#                # insert first result of transfer one more time at beginning to also plot point when x = 0.
+#                y_transfer_results = d[combo][feature][da][clf]['y_transfer_results'].copy()
+#                y_transfer_results.insert(0,y_transfer_results[0])
+#                transfer_result_avg = round(np.mean(y_transfer_results),2)
+#                # insert 0 at beginning to the plot beginns at origin
+#                y_target_results = d[combo][feature][da][clf]['y_target_results'].copy()
+#                y_target_results.insert(0,0)
+#                ax.plot(x,y_transfer_results,linewidth=2,
+#                        label='transfer learning results ({}) when trained on all {} source instances. F1: {}'.format(clf,candsets[source_name].shape[0],transfer_result_avg),
+#                        color=colors[i%len(colors)])
+#                if(plot_target):
+#                    ax.plot(x,y_target_results,linewidth=2,linestyle='dashed',
+#                            label='target results ({}): trained on x target instances'.format(clf),
+#                            color=colors[i%len(colors)])
+#                    if(not math.isnan(float(d[combo][feature][da][clf]['x_target_exceed']))):
+#                        idx = x.index(d[combo][feature][da][clf]['x_target_exceed'])
+#                        ax.plot(x[idx], y_target_results[idx], 'ro') 
+#                # benchmark plots
+#                # supervised
+#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
+#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+#                        color=colors[i%len(colors)])
+#        
+#        
+#    # add legend to plot
+#    ax.legend(fontsize=12)
+#    # add a text box with info
+#    info_text = 'Transfer Learning (TL)\nand the target results\nwere tested on the same\ntest set from the target.'
+#    if(plot_target):
+#        info_text_2 = 'The target results were\ntrained on random\nsamples of size x\nfrom the target\ntraining set and avg.\nover n={} random\nsamples of x.'.format(n)
+#        textstr = 'INFO:\n{}\n{}'.format(info_text,info_text_2)
+#    else:
+#        textstr = 'INFO:\n{}'.format(info_text)
+#    ax.text(0.71, 0.85, textstr, transform=fig.transFigure, fontsize=12,verticalalignment='top', bbox=props)
+#    features_used = '{} features were used'.format(feature)
+#    ax.set_title('Transfer Learning Results of Naive Transfer: Trained on source {} and tested on target {}\n{}'.format(source_name,
+#                 target_name,features_used))
+#    if(path_for_output is not None):
+#        fig.savefig('{}{}_{}_{}_n{}.png'.format(path_for_output,source_name,target_name,feature,n),bbox_inches='tight')
+#    
+#    return fig
+
+#%%
+
 def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators,selected_da_weighting,candsets,
                   candsets_super_results,candsets_unsuper_results,plot_target,path_for_output=None):
     
     x=[0,10,14,20,24,28,32,38,44,50,60,70,80,90,100,120,140,160,180,200,300,500]
     d = tl_results
     
-    combo = '{}_{}'.format(source_name,target_name)
+    keys = list(d.keys())
+    if(not isinstance(keys[0],tuple)):
+        combo= '{}_{}'.format(source_name,target_name)
+    else:
+        combo = (source_name,target_name)
+                         
+    #combo = '{}_{}'.format(source_name,target_name)
     fig,ax = plt.subplots(figsize=(16,8))
     plt.subplots_adjust(right=0.7)
     plt.close(fig)
@@ -105,7 +202,7 @@ def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators
     if(path_for_output is not None):
         fig.savefig('{}{}_{}_{}_n{}.png'.format(path_for_output,source_name,target_name,feature,n),bbox_inches='tight')
     
-    return fig    
+    return fig        
 
 #%%
 #generator function to create tuples of every n element
@@ -117,7 +214,7 @@ def group(lst, n):
             
 
 def createDFwithTLResults(tl_results,candsets_super_results,candsets_unsuper_results,
-                               estimators,da_weighting='no_weighting',filename='tl_results'):
+                               estimators,feature_sets=['all','dense'],da_weighting='no_weighting',filename='tl_results'):
     """
     This function creates a DataFrame with the results of each experiment. Per estimator the TL_avg (Transfer Learning Avg Result),
     Tar_max (Target max result when trained on 500 target instances), Tar_exc (Amount of Target Instances needed to exceed TL results),
@@ -181,8 +278,10 @@ def createDFwithTLResults(tl_results,candsets_super_results,candsets_unsuper_res
             ('vertical-align','top'),
             ('text-align','center')]}]
     # each estimator has 6 results because of being trained on all features and only dense ones and results are TL_avg, Tar_max and Tar_exc
+    # number of feature sets
+    number_of_feature_sets = len(feature_sets)
     number_of_estimators = len(estimators)
-    n = number_of_estimators*2*3 
+    n = number_of_estimators*number_of_feature_sets*3 
     # getting the source and target keys (first keys in dictionary)
     keys = list(d.keys())
     # when the transfer learning results are saved in a dictionary from json file (dictionary from the experiments was stored in json)
@@ -237,10 +336,14 @@ def createDFwithTLResults(tl_results,candsets_super_results,candsets_unsuper_res
     df_super = pd.DataFrame(list(group(values,number_of_estimators)),index=tl_candsets_super_results.keys(),columns=innerkeys[:number_of_estimators])
     #list_of_estimators=['logreg','logregcv','dectree','randforest']
     columns_before = list(df_super.columns)
-    df_super = pd.concat([df_super,df_super],axis=1)
-    df_super.columns = pd.MultiIndex.from_product([['all','dense'], columns_before, ['Tar_sup']],names=['Features','Estimators','Results'])
+    if(number_of_feature_sets==2):
+        df_super = pd.concat([df_super,df_super],axis=1)
+    if(number_of_feature_sets>2):
+        raise ValueError('Only one feature set supported (either all or dense) or both, but not more!')
+    
+    df_super.columns = pd.MultiIndex.from_product([feature_sets, columns_before, ['Tar_sup']],names=['Features','Estimators','Results'])
     df = pd.merge(df,df_super,how='left',left_on='Target',right_index=True)
-    df = df.reindex(columns=['all','dense'],level=0)
+    df = df.reindex(columns=feature_sets,level=0)
     df = df.reindex(columns=clfs,level=1)
     df = df.reindex(columns=['TL_avg','Tar_max','Tar_exc','Tar_sup'], level=2)
 

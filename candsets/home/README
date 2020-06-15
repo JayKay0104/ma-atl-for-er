@@ -1,0 +1,2 @@
+Train and test sets are created with train_test_split from sklearn (v0.22.1)
+with random_state = 42, test_size = 0.33, and stratified

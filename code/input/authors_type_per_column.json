@@ -1,0 +1,7 @@
+{
+  "birthdate": "date",
+  "deathdate": "date",
+  "gender": "str",
+  "name": "str",
+  "work": "long_str"
+}

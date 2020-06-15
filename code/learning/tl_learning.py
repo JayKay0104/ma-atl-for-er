@@ -5,7 +5,7 @@ Created on Mon Apr  6 08:51:30 2020
 @author: jonas
 """
 #%%
-import pandas as pd
+#import pandas as pd
 import numpy as np
 #import matplotlib.pyplot as plt
 #import seaborn as sns
@@ -22,7 +22,7 @@ import itertools
 #import logging
 
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import train_test_split
+#from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 # for calulating the DomainRelatedness
 from sklearn.linear_model import LogisticRegressionCV
@@ -37,32 +37,39 @@ import support_utils as sup
 
 #%% Transfer Learning Experiments
     
-def getF1SourceTargetFixedAvg(source,target,estimator,rel_columns,da_weighting,target_train_size,n=10):
+def getF1SourceTargetFixedAvg(source,target,target_training,target_test,estimator,rel_columns,da_weighting,target_train_size,n=10):
     """
-    Perform Transfer Learning Experiment with naive transfer of matching rule trained on source
-    instances and evaluated on all target instances - target_train_size when using the specified 
-    estimator and the specified features (rel_columns). The results are averaged over n runs.
+    Perform Transfer Learning Experiment with naive transfer of matching rule trained on training set from source
+    and evaluated on the test set from the target using the specified 
+    estimator and the specified features (rel_columns). Besides that, from the target training a random sample of
+    size (target_train_size) is sampled and used to train the same estimator and tested on the target test set.
+    The results are averaged over n random samples.
     
-    Source: candset (DataFrame) which acts as source
-    Target: candset (DataFrame) which acts as target
+    Source: all labeled source instances
+    Target: all target instances (not necessarily labeled)
+    Target_training: training set of the target
+    Target_test: test set / validation set of the target
     Estimator: sklearn Estimator that shall be used
     Rel_columns: List of features that shall be used for training
+    Da_weighting: (optional) Domain Adaptation Technique to use. Either 'no_weighting', 'nn', or 'lr_predict_proba'
     Target_train_size: Amount of target features that shall be used for training a classifier
                        for comparison
     n: specifies on how many random samples the experiments shall be performed and averaged.
      Default: 10
     """
-    X_source = source[rel_columns].copy()
-    y_source = source['label'].copy()
+    X_source = source[rel_columns]
+    y_source = source['label']
     #amount_of_training_source_instances = X_source.shape[0]
     f1_target = []
     
-    X_target = target[rel_columns].copy()
-    y_target = target['label'].copy()
+    X_target = target[rel_columns]
+#    y_target = target_training['label'].copy()
     
     #create same train test split as was created for the target benchmarks
-    X_target_train, X_target_test, y_target_train, y_target_test = train_test_split(X_target,y_target,random_state=42,test_size=0.33,
-                                                                                    stratify=y_target)
+    #X_target_train = target_training[rel_columns].drop(columns='label')
+    X_target_test = target_test[rel_columns]
+    #y_target_train = target_training['label']
+    y_target_test = target_test['label']
     
     if(da_weighting is None):  
         # train a classifier using all source instances
@@ -70,9 +77,8 @@ def getF1SourceTargetFixedAvg(source,target,estimator,rel_columns,da_weighting,t
         predicted_source_on_target = clf_source.predict(X_target_test)
         f1_source = f1_score(y_target_test,predicted_source_on_target)
     else:
-        # X_target_train or X_target here?
         sample_weight = da.getSampleWeightsOfDomainAdaptation(X_source, X_target, da_weighting)
-        clf_source = estimator.fit(X_source, y_source,sample_weight)
+        clf_source = estimator.fit(X_source, y_source, sample_weight)
         predicted_source_on_target = clf_source.predict(X_target_test)
         f1_source = f1_score(y_target_test,predicted_source_on_target)
     
@@ -80,8 +86,10 @@ def getF1SourceTargetFixedAvg(source,target,estimator,rel_columns,da_weighting,t
     # Note the train test split (stratified,size=0.33,random_state=42),
     # was only done in order to retrieve the same test set as was used 
     # and will be used for all experiments!
-    training = X_target_train.copy()
-    training['label'] = y_target_train.copy()
+    #training = X_target_train.copy()
+    #training['label'] = y_target_train.copy()
+    training = target_training[rel_columns].copy()
+    training['label'] = target_training['label'].copy()
     
     for i in range(n):
         # create stratified sample of the target training instances
@@ -101,7 +109,7 @@ def getF1SourceTargetFixedAvg(source,target,estimator,rel_columns,da_weighting,t
 
 #%%
  
-def performSingleTLExp(source,target,source_target_name,estimators,features,da_weighting=None,n=10,switch_roles=True):
+def performSingleTLExp(source,target,source_target_name,target_train,target_test,estimators,features,da_weighting=None,n=10,switch_roles=True):
     """
     Backup function to perform single experiment.
     """
@@ -122,11 +130,11 @@ def performSingleTLExp(source,target,source_target_name,estimators,features,da_w
             for x in x_instances:
                 # all features (also non-dense ones)
                 # transfer from a to b 
-                res = getF1SourceTargetFixedAvg(source,target,estimators[clf],features,da_weighting,x,n)
+                res = getF1SourceTargetFixedAvg(source,target,target_train,target_test,estimators[clf],features,da_weighting,x,n)
                 a_transfer_results.append(res[0])
                 a_target_results.append(res[1])
                 # transfer from b to a
-                res = getF1SourceTargetFixedAvg(target,source,estimators[clf],features,da_weighting,x,n)
+                res = getF1SourceTargetFixedAvg(target,source,target_train,target_test,estimators[clf],features,da_weighting,x,n)
                 b_transfer_results.append(res[0])
                 b_target_results.append(res[1])
             
@@ -214,7 +222,7 @@ def performSingleTLExp(source,target,source_target_name,estimators,features,da_w
 
             for x in x_instances:
                 # perform transfer learning experiments with source as source and target as target
-                res = getF1SourceTargetFixedAvg(source,target,estimators[clf],features,da_weighting,x,n)
+                res = getF1SourceTargetFixedAvg(source,target,target_train,target_test,estimators[clf],features,da_weighting,x,n)
                 a_transfer_results.append(res[0])
                 a_target_results.append(res[1])
 
@@ -262,7 +270,7 @@ def performSingleTLExp(source,target,source_target_name,estimators,features,da_w
 
 #%%
     
-def performTLFromDict(candsets,estimators,all_features,dense_features_dict,da_weighting=None,n=10):
+def performTLFromDict(candsets,candsets_train,candsets_test,estimators,all_features,dense_features_dict=None,da_weighting=None,n=10):
     """
     ***IMPORTANT*** -> Very time consuming. Hence, results should be saved to hard disk with saveTLResultsToJSON() function, so that the experiments not necessarily need to be repeated.
     Perform Transfer Learning Experiment for each combination of source-target pairs in candsets dictionary
@@ -272,6 +280,8 @@ def performTLFromDict(candsets,estimators,all_features,dense_features_dict,da_we
     
     @parameters
     candsets: Dictionary containing all candidate sets (pot. correspondences)
+    candsets_train: Dictionary containing all training sets (pot. correspondences)
+    candsets_test: Dictionary containing all test sets (pot. correspondences)
     estimators: Dicitionary with sklearn Estimators that shall be used for the TL Experiment. Dictionary should be of form {'logreg':LogisticRegression(),'logregcv':LogisticRegressionCV(),...}
     All_features: List of with all features
     Dense_features_dict: Dictionary with list of onle the dense feature for each combination. Exp: When source ban_half and target wor_half then the dense features across
@@ -304,30 +314,35 @@ def performTLFromDict(candsets,estimators,all_features,dense_features_dict,da_we
             for x in x_instances:
                 # all features (also non-dense ones)
                 # transfer from a to b 
-                res = getF1SourceTargetFixedAvg(candsets[combo[0]],candsets[combo[1]],estimators[clf],all_features,da_weighting,x,n)
+                res = getF1SourceTargetFixedAvg(candsets[combo[0]],candsets[combo[1]],candsets_train[combo[1]],candsets_test[combo[1]],estimators[clf],all_features,da_weighting,x,n)
                 a_transfer_results.append(res[0])
                 a_target_results.append(res[1])
                 # transfer from b to a
-                res = getF1SourceTargetFixedAvg(candsets[combo[1]],candsets[combo[0]],estimators[clf],all_features,da_weighting,x,n)
+                res = getF1SourceTargetFixedAvg(candsets[combo[1]],candsets[combo[0]],candsets_train[combo[0]],candsets_test[combo[0]],estimators[clf],all_features,da_weighting,x,n)
                 b_transfer_results.append(res[0])
                 b_target_results.append(res[1])
-                    
-                # only the dense features
-                dense_feature_key = '_'.join(sorted(set(combo[0].split('_')+combo[1].split('_'))))
-                # transfer from a to b 
-                res = getF1SourceTargetFixedAvg(candsets[combo[0]],
-                                                    candsets[combo[1]],
-                                                    estimators[clf],
-                                                    dense_features_dict[dense_feature_key],da_weighting,x,n)
-                a_transfer_results_dense.append(res[0])
-                a_target_results_dense.append(res[1])
-                # transfer from b to a
-                res = getF1SourceTargetFixedAvg(candsets[combo[1]],
-                                                    candsets[combo[0]],
-                                                    estimators[clf],
-                                                    dense_features_dict[dense_feature_key],da_weighting,x,n)
-                b_transfer_results_dense.append(res[0])
-                b_target_results_dense.append(res[1])
+                
+                if(dense_features_dict is not None):
+                    # only the dense features
+                    dense_feature_key = '_'.join(sorted(set(combo[0].split('_')+combo[1].split('_'))))
+                    # transfer from a to b 
+                    res = getF1SourceTargetFixedAvg(candsets[combo[0]],
+                                                        candsets[combo[1]],
+                                                        candsets_train[combo[1]],
+                                                        candsets_test[combo[1]],
+                                                        estimators[clf],
+                                                        dense_features_dict[dense_feature_key],da_weighting,x,n)
+                    a_transfer_results_dense.append(res[0])
+                    a_target_results_dense.append(res[1])
+                    # transfer from b to a
+                    res = getF1SourceTargetFixedAvg(candsets[combo[1]],
+                                                        candsets[combo[0]],
+                                                        candsets_train[combo[0]],
+                                                        candsets_test[combo[0]],
+                                                        estimators[clf],
+                                                        dense_features_dict[dense_feature_key],da_weighting,x,n)
+                    b_transfer_results_dense.append(res[0])
+                    b_target_results_dense.append(res[1])
             
             # all features
             a_transfer_res = sum(a_transfer_results)/len(x_instances)
@@ -404,81 +419,82 @@ def performTLFromDict(candsets,estimators,all_features,dense_features_dict,da_we
                                                                        'y_transfer_results':b_transfer_results,
                                                                        'y_target_results':b_target_results,
                                                                        'n_runs':n}})
-            # dense features
-            a_transfer_res_dense = sum(a_transfer_results_dense)/len(x_instances)
-            a_target_max_dense = max(a_target_results_dense)
-            b_transfer_res_dense = sum(b_transfer_results_dense)/len(x_instances)
-            b_target_max_dense = max(b_target_results_dense)
-            try:
-                idx = np.argwhere(np.diff(np.sign(np.array(a_transfer_results_dense) - np.array(a_target_results_dense)))).flatten()[0]
-                a_x_target_instances_dense = x_instances[idx]
-            except Exception:
-                a_x_target_instances_dense = np.nan
-            try:
-                idx = np.argwhere(np.diff(np.sign(np.array(b_transfer_results_dense) - np.array(b_target_results_dense)))).flatten()[0]
-                b_x_target_instances_dense = x_instances[idx]
-            except Exception:
-                b_x_target_instances_dense = np.nan
-            if('dense' not in d[combo]):
-                if(da_weighting is None):
-                    d[combo].update({'dense':{'no_weighting':{clf:{'transfer_avg_result':a_transfer_res_dense,
-                                               'target_max_result':a_target_max_dense,
-                                               'x_target_exceed':a_x_target_instances_dense,
-                                               'y_transfer_results':a_transfer_results_dense,
-                                               'y_target_results':a_target_results_dense,
-                                               'n_runs':n}}}})
+            if(dense_features_dict is not None):        
+                # dense features
+                a_transfer_res_dense = sum(a_transfer_results_dense)/len(x_instances)
+                a_target_max_dense = max(a_target_results_dense)
+                b_transfer_res_dense = sum(b_transfer_results_dense)/len(x_instances)
+                b_target_max_dense = max(b_target_results_dense)
+                try:
+                    idx = np.argwhere(np.diff(np.sign(np.array(a_transfer_results_dense) - np.array(a_target_results_dense)))).flatten()[0]
+                    a_x_target_instances_dense = x_instances[idx]
+                except Exception:
+                    a_x_target_instances_dense = np.nan
+                try:
+                    idx = np.argwhere(np.diff(np.sign(np.array(b_transfer_results_dense) - np.array(b_target_results_dense)))).flatten()[0]
+                    b_x_target_instances_dense = x_instances[idx]
+                except Exception:
+                    b_x_target_instances_dense = np.nan
+                if('dense' not in d[combo]):
+                    if(da_weighting is None):
+                        d[combo].update({'dense':{'no_weighting':{clf:{'transfer_avg_result':a_transfer_res_dense,
+                                                   'target_max_result':a_target_max_dense,
+                                                   'x_target_exceed':a_x_target_instances_dense,
+                                                   'y_transfer_results':a_transfer_results_dense,
+                                                   'y_target_results':a_target_results_dense,
+                                                   'n_runs':n}}}})
+                    else:
+                        d[combo].update({'dense':{da_weighting:{clf:{'transfer_avg_result':a_transfer_res_dense,
+                                                   'target_max_result':a_target_max_dense,
+                                                   'x_target_exceed':a_x_target_instances_dense,
+                                                   'y_transfer_results':a_transfer_results_dense,
+                                                   'y_target_results':a_target_results_dense,
+                                                   'n_runs':n}}}})
                 else:
-                    d[combo].update({'dense':{da_weighting:{clf:{'transfer_avg_result':a_transfer_res_dense,
-                                               'target_max_result':a_target_max_dense,
-                                               'x_target_exceed':a_x_target_instances_dense,
-                                               'y_transfer_results':a_transfer_results_dense,
-                                               'y_target_results':a_target_results_dense,
-                                               'n_runs':n}}}})
-            else:
-                if(da_weighting is None):
-                    d[combo]['dense']['no_weighting'].update({clf:{'transfer_avg_result':a_transfer_res_dense,
-                                               'target_max_result':a_target_max_dense,
-                                               'x_target_exceed':a_x_target_instances_dense,
-                                               'y_transfer_results':a_transfer_results_dense,
-                                               'y_target_results':a_target_results_dense,
-                                               'n_runs':n}})
+                    if(da_weighting is None):
+                        d[combo]['dense']['no_weighting'].update({clf:{'transfer_avg_result':a_transfer_res_dense,
+                                                   'target_max_result':a_target_max_dense,
+                                                   'x_target_exceed':a_x_target_instances_dense,
+                                                   'y_transfer_results':a_transfer_results_dense,
+                                                   'y_target_results':a_target_results_dense,
+                                                   'n_runs':n}})
+                    else:
+                        d[combo]['dense'][da_weighting].update({clf:{'transfer_avg_result':a_transfer_res_dense,
+                                                   'target_max_result':a_target_max_dense,
+                                                   'x_target_exceed':a_x_target_instances_dense,
+                                                   'y_transfer_results':a_transfer_results_dense,
+                                                   'y_target_results':a_target_results_dense,
+                                                   'n_runs':n}})                
+                if('dense' not in d[combo[::-1]]):
+                    if(da_weighting is None):
+                        d[combo[::-1]].update({'dense':{'no_weighting':{clf:{'transfer_avg_result':b_transfer_res_dense,
+                                                         'target_max_result':b_target_max_dense,
+                                                         'x_target_exceed':b_x_target_instances_dense,
+                                                         'y_transfer_results':b_transfer_results_dense,
+                                                         'y_target_results':b_target_results_dense,
+                                                         'n_runs':n}}}})
+                    else:
+                        d[combo[::-1]].update({'dense':{da_weighting:{clf:{'transfer_avg_result':b_transfer_res_dense,
+                                                         'target_max_result':b_target_max_dense,
+                                                         'x_target_exceed':b_x_target_instances_dense,
+                                                         'y_transfer_results':b_transfer_results_dense,
+                                                         'y_target_results':b_target_results_dense,
+                                                         'n_runs':n}}}})
                 else:
-                    d[combo]['dense'][da_weighting].update({clf:{'transfer_avg_result':a_transfer_res_dense,
-                                               'target_max_result':a_target_max_dense,
-                                               'x_target_exceed':a_x_target_instances_dense,
-                                               'y_transfer_results':a_transfer_results_dense,
-                                               'y_target_results':a_target_results_dense,
-                                               'n_runs':n}})                
-            if('dense' not in d[combo[::-1]]):
-                if(da_weighting is None):
-                    d[combo[::-1]].update({'dense':{'no_weighting':{clf:{'transfer_avg_result':b_transfer_res_dense,
-                                                     'target_max_result':b_target_max_dense,
-                                                     'x_target_exceed':b_x_target_instances_dense,
-                                                     'y_transfer_results':b_transfer_results_dense,
-                                                     'y_target_results':b_target_results_dense,
-                                                     'n_runs':n}}}})
-                else:
-                    d[combo[::-1]].update({'dense':{da_weighting:{clf:{'transfer_avg_result':b_transfer_res_dense,
-                                                     'target_max_result':b_target_max_dense,
-                                                     'x_target_exceed':b_x_target_instances_dense,
-                                                     'y_transfer_results':b_transfer_results_dense,
-                                                     'y_target_results':b_target_results_dense,
-                                                     'n_runs':n}}}})
-            else:
-                if(da_weighting is None):
-                    d[combo[::-1]]['dense']['no_weighting'].update({clf:{'transfer_avg_result':b_transfer_res_dense,
-                                                     'target_max_result':b_target_max_dense,
-                                                     'x_target_exceed':b_x_target_instances_dense,
-                                                     'y_transfer_results':b_transfer_results_dense,
-                                                     'y_target_results':b_target_results_dense,
-                                                     'n_runs':n}})
-                else:
-                    d[combo[::-1]]['dense'][da_weighting].update({clf:{'transfer_avg_result':b_transfer_res_dense,
-                                                     'target_max_result':b_target_max_dense,
-                                                     'x_target_exceed':b_x_target_instances_dense,
-                                                     'y_transfer_results':b_transfer_results_dense,
-                                                     'y_target_results':b_target_results_dense,
-                                                     'n_runs':n}})
+                    if(da_weighting is None):
+                        d[combo[::-1]]['dense']['no_weighting'].update({clf:{'transfer_avg_result':b_transfer_res_dense,
+                                                         'target_max_result':b_target_max_dense,
+                                                         'x_target_exceed':b_x_target_instances_dense,
+                                                         'y_transfer_results':b_transfer_results_dense,
+                                                         'y_target_results':b_target_results_dense,
+                                                         'n_runs':n}})
+                    else:
+                        d[combo[::-1]]['dense'][da_weighting].update({clf:{'transfer_avg_result':b_transfer_res_dense,
+                                                         'target_max_result':b_target_max_dense,
+                                                         'x_target_exceed':b_x_target_instances_dense,
+                                                         'y_transfer_results':b_transfer_results_dense,
+                                                         'y_target_results':b_target_results_dense,
+                                                         'n_runs':n}})
         # Update Progress Bar
         sup.printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
     return d

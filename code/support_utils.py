@@ -8,14 +8,11 @@ Created on Tue May 12 12:30:53 2020
 #%%
 import pandas as pd
 import numpy as np
-#import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set_color_codes()
 import glob
 import re
 import json
-#import itertools
-#from IPython.display import display
 
 
 #%% progress bar
@@ -43,21 +40,10 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
         print()
 
 #%%
-# read data and store in dictionary
-        
-#logger = logging.getLogger(__name__)
-def readDataInDictionary(path_to_directory = '../datasets/', pattern_of_filename = '(.*)', sep=';', name_at_end=True):
+
+def readDataInDictionary(path_to_directory = '../datasets/', pattern_of_filename = '(.*)', sep=';'):
     """
-    Function to read in the datasests. The datasets need to be stored as csv files!
-    The filename is used as key in the dictionary. Hence, the filename should be the name of the
-    source. For those datasets the argument name_at_end does not play a role and can be the default value.
-    Exp: source.csv will have the key 'source' in the returned dictionary.
-    For the candidate sets (pot. correspondences) the datasets have to follow a naming convention:
-    The two sources the data is coming from need to be enclosed in the filename either at the end 
-    (name_at_end=True) or at the beginning (name_at_end=False needs to be set then) and be separrated by a '_'. 
-    Exp with sources at the end: 
-    dataset with pot. corr. from source1 and source2 => filename: [ADDITIONAL_NAME]_source1_source2.csv
-    will have 'source1_source2' as key in the returned dictionary. 
+    Function to read in the datasets. The datasets need to be stored as csv files!
     
     Parameters:
     
@@ -71,29 +57,43 @@ def readDataInDictionary(path_to_directory = '../datasets/', pattern_of_filename
     
     sep: Specify the delimiter of the csv files. All csv files need to have the same delimiter
     Default: ';'
-    
-    name_at_end: If filename: [ADDITIONAL_NAME]_source1_source2.csv then default (True) is ok. But if 
-    filename: source1_source2_[ADDITIONAL_NAME].csv it has to be set to False!
-    Default: True
     """
     pattern_name = '{}{}.csv'.format(path_to_directory,pattern_of_filename)
     #logger.debug('pattern_name: {}'.format(pattern_name))
     file_list = glob.glob('{}*.csv'.format(path_to_directory))
     #logger.debug('file_list: {}'.format(file_list))
-    #res = [re.findall(pattern_name,x)[0] for x in file_list if bool(re.match(pattern_name,x))]
+    res = [re.findall(pattern_name,x)[0] for x in file_list if bool(re.match(pattern_name,x))]
     file_list = [x for x in file_list if bool(re.match(pattern_name,x))]
     #logger.debug('file_list: {}'.format(file_list))
-    if(name_at_end):
-        res = ['_'.join(x.split('_')[-2:]).split('.')[0] for x in file_list]
-    elif(name_at_end == False):
-        res = ['_'.join(x.split('_')[:2]).split('.')[0] for x in file_list]
-    else:
-        res = [x.split('/')[-1].split('.')[0] for x in file_list]
+    
     dfs = {}
     for i in range(len(file_list)):
         dfs.update({res[i]:pd.read_csv(file_list[i],sep=sep,low_memory=False)})
         #logger.info('{} is read in and is stored in the dictionary with they key [\'{}\']'.format(file_list[i],res[i]))
     return dfs
+    
+    
+#%%
+    
+def getCandsetsWithOrgAttribute(candset_dict,dataset_dict,id_col_name='ids',label_col_name='label'):
+    """
+    Retrieve the original attributes from the candsets feature set
+    """
+    candsets_attr = {}
+    for cand in candset_dict:
+        temp = candset_dict[cand][[id_col_name,label_col_name]].copy()
+        temp['l_id'] = temp[id_col_name].apply(lambda s: '_'.join(s.split('_')[:2]))
+        temp['r_id'] = temp[id_col_name].apply(lambda s: '_'.join(s.split('_')[2:]))
+        l_key = cand.split('_')[0]
+        r_key = cand.split('_')[1]
+        l_temp_attr = pd.merge(temp,dataset_dict[l_key],left_on='l_id',right_on=l_key+'_id')
+        r_l_temp_attr = pd.merge(l_temp_attr,dataset_dict[r_key],left_on='r_id',right_on=r_key+'_id')
+        cols = list(r_l_temp_attr.columns.drop([id_col_name,label_col_name,'l_id','r_id']))
+        cols.sort(key=(lambda x: '_'.join(x.split('_')[1:])))
+        final_cols = [id_col_name,label_col_name]+cols
+        candsets_attr.update({cand:r_l_temp_attr[final_cols]})
+    return candsets_attr
+
 
 #%%
 # from: https://stackoverflow.com/questions/26646362/numpy-array-is-not-json-serializable
@@ -148,3 +148,14 @@ def importJSONFileInDict(filename):
         with open('{}'.format(filename), 'r') as f:
             d = json.load(f,parse_float=float)
     return d
+
+#%%
+
+# remove text within parentheses from string
+def remove_paren(string):
+    # ensure input is string by converting it to string and lower case it
+    string = str(string)
+    # first exclude text within parentheses and ensure no whitespace at the beginning or end
+    string = re.sub(r'\(.*\)','',string).strip()
+    # before returning the string without parentheses also ensure no double whitespaces are in the string
+    return re.sub(r'  ',' ',string).strip()

@@ -13,7 +13,7 @@ import al_committees as com
 from libact.base.dataset import Dataset
 from libact.labelers import IdealLabeler
 from libact.query_strategies import UncertaintySampling #, RandomSampling, QueryByCommittee
-from sklearn.model_selection import train_test_split #, cross_val_predict
+#from sklearn.model_selection import train_test_split #, cross_val_predict
 from sklearn.metrics import f1_score, precision_recall_fscore_support
 import time
 import itertools
@@ -36,8 +36,8 @@ import support_utils as sup
 
 #%%  
 
-def active_weighted_transfer_learning(candsets,source_name,target_name,feature,estimator_name,query_strategy,quota,
-                                      warm_start,weighting=None,disagreement='vote',n=5):
+def active_weighted_transfer_learning(candsets,candsets_train,candsets_test,source_name,target_name,feature,estimator_name,
+                                      query_strategy,quota,warm_start,weighting=None,disagreement='vote',n=5):
     """
     query_strategy: 
         Possible strategies are: 
@@ -56,7 +56,10 @@ def active_weighted_transfer_learning(candsets,source_name,target_name,feature,e
     X_source = candsets[source_name][feature].to_numpy()
     y_source = candsets[source_name]['label'].to_numpy()
     X_target = candsets[target_name][feature].to_numpy()
-    y_target = candsets[target_name]['label'].to_numpy()
+    X_target_train = candsets_train[target_name][feature].to_numpy()
+    y_target_train = candsets_train[target_name]['label'].to_numpy()
+    X_target_test = candsets_test[target_name][feature].to_numpy()
+    y_target_test = candsets_test[target_name]['label'].to_numpy()
     # the source instances are all labeled and used as initial training set
     # hence, n_labeled == the size of of source instances
     n_labeled = y_source.shape[0]  
@@ -67,12 +70,9 @@ def active_weighted_transfer_learning(candsets,source_name,target_name,feature,e
         sample_weight = None
     else:
         print('Unsupervised Domain Adaptation: Calculate sample_weight for the source instances using'.format(weighting))
+        # unsupervised domain adaptation so we use the whole unlabeled source and target data
         sample_weight = da.getSampleWeightsOfDomainAdaptation(X_source, X_target, weighting)
     
-    # doing the train_test_split with fixed size (33% testing) and fixed random_state (42) as well as stratified
-    # in order to be able to compare results and ensure reproducibility
-    X_target_train, X_target_test, y_target_train, y_target_test = train_test_split(X_target,y_target,test_size=0.33,
-                                                                                    random_state=42,stratify=y_target)
     # create libact DataSet Object containting the validation set
     test_ds = Dataset(X=X_target_test,y=y_target_test)
     
@@ -364,8 +364,8 @@ def run_weighted_atl(train_ds,test_ds,lbr,model,qs,quota,n_init_labeled):
 
 #%%
     
-def atl_different_weighted_settings_all(candsets,weighting,dense_features_dict,estimator_names,query_strategies,
-                               quota,warm_start,disagreement='vote',n=5,switch_roles=False):
+def atl_different_weighted_settings_all(candsets,candsets_train,candsets_test,weighting,dense_features_dict,estimator_names,
+                                        query_strategies,quota,warm_start,disagreement='vote',n=5,switch_roles=False):
     
     d = {}
     
@@ -379,32 +379,24 @@ def atl_different_weighted_settings_all(candsets,weighting,dense_features_dict,e
             target_name = combo[1]
             dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
             feature = dense_features_dict[dense_feature_key]
-            # key not needed
-            #key = '{}_{}'.format(source_name,target_name)
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
                                                           quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
+
             d.update(temp)
             # switch roles: now the previous target serves as source
             source_name = combo[1]
             target_name = combo[0]
-            #dense feature key is the same
-            #dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
-            #feature = dense_features_dict[dense_feature_key]
-            #key = '{}_{}'.format(source_name,target_name)
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
-                                                      quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
+                                                          quota,warm_start,weighting,disagreement,n)
+
             d.update(temp)
     else:
         for combo in combinations:
@@ -412,15 +404,13 @@ def atl_different_weighted_settings_all(candsets,weighting,dense_features_dict,e
             target_name = combo[1]
             dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
             feature = dense_features_dict[dense_feature_key]
-            #key = '{}_{}'.format(source_name,target_name)
             
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
             
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
                                                           quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
+
             d.update(temp)
     
     return d
@@ -428,43 +418,33 @@ def atl_different_weighted_settings_all(candsets,weighting,dense_features_dict,e
 
 #%%
     
-def atl_different_weighted_settings_combos(candsets,combinations,weighting,dense_features_dict,estimator_names,query_strategies,
-                                           quota,warm_start,disagreement='vote',n=5,switch_roles=False):
-    
-    d = {}
-    
+def atl_different_weighted_settings_combos(candsets,candsets_train,candsets_test,combinations,weighting,dense_features_dict,
+                                           estimator_names,query_strategies,quota,warm_start,disagreement='vote',n=5,
+                                           switch_roles=False):
+    d = {} 
     if(switch_roles):
         for combo in combinations:
             source_name = combo[0]
             target_name = combo[1]
             dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
             feature = dense_features_dict[dense_feature_key]
-            # key not needed
-            #key = '{}_{}'.format(source_name,target_name)
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
                                                           quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
             d.update(temp)
             # switch roles: now the previous target serves as source
             source_name = combo[1]
             target_name = combo[0]
-            #dense feature key is the same
-            #dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
-            #feature = dense_features_dict[dense_feature_key]
-            #key = '{}_{}'.format(source_name,target_name)
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
                                                           quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
+
             d.update(temp)
     else:
         for combo in combinations:
@@ -472,29 +452,26 @@ def atl_different_weighted_settings_combos(candsets,combinations,weighting,dense
             target_name = combo[1]
             dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
             feature = dense_features_dict[dense_feature_key]
-            #key = '{}_{}'.format(source_name,target_name)
             
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
             
-            temp = atl_different_weighted_settings_single(candsets,source_name,target_name,feature,estimator_names,query_strategies,
+            temp = atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                          feature,estimator_names,query_strategies,
                                                           quota,warm_start,weighting,disagreement,n)
-            #if(key in d):
-            #    d[key].update(temp[key])
-            #else:
+
             d.update(temp)
     
     return d
 
 #%%
     
-def atl_different_weighted_settings_single(candsets,source_name,target_name,dense_features,estimators,query_strategies,
-                                           quota,warm_start,weighting=None,disagreement='vote',n=5):
+def atl_different_weighted_settings_single(candsets,candsets_train,candsets_test,source_name,target_name,features,
+                                           estimators,query_strategies,quota,warm_start,weighting=None,
+                                           disagreement='vote',n=5):
     """
     Run Active Transfer Learning with different settings as specified in estimators and query_strategies!
     """
     d = {}
-    #dense_feature_key = '_'.join(sorted(set(source_name.split('_')+target_name.split('_'))))
-    #feature = dense_features_dict[dense_feature_key]
     key = '{}_{}'.format(source_name,target_name)
     for est in estimators:
         print('Start with Estimator: {}'.format(est))
@@ -502,8 +479,8 @@ def atl_different_weighted_settings_single(candsets,source_name,target_name,dens
             print('Start with Query Strategy: {}'.format(qs))
             for weight in weighting:
                 print('Start with Weighting Strategy: {}'.format(weight))
-                temp = active_weighted_transfer_learning(candsets,source_name,target_name,dense_features,est,qs,
-                                                         quota,warm_start,weight,disagreement,n)
+                temp = active_weighted_transfer_learning(candsets,candsets_train,candsets_test,source_name,target_name,
+                                                         features,est,qs,quota,warm_start,weight,disagreement,n)
                 if(key in d):
                     if(est in d[key]):
                         if(qs in d[key][est]):

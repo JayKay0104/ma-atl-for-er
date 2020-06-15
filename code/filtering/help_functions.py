@@ -17,6 +17,7 @@ import logging
 import random
 import numpy.matlib
 from itertools import groupby
+from collections import defaultdict
 logger = logging.getLogger(__name__)
 import warnings
 warnings.filterwarnings('ignore')
@@ -65,24 +66,28 @@ def readDataInDictionary(path_to_directory = '../datasets/', pattern_of_filename
         logger.info('{} is read in and is stored in the dictionary with they key [\'{}\']'.format(file_list[i],res[i]))
     return dfs
 
-
 #%%
 
-def getDataTypes(df):
+def getDataTypes(df,lst_of_ids_to_be_removed):
     """
     Get the data types for each column and return it in a dictionary like column:datatype!
     
     Datetime formats that can be detected are:
-    date_formats = ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '(%d %b %Y)', '%d-%m-%Y', '%m-%d-%Y', 
-                '%b. %d, %Y', '%Y/%m/%d', '%Y', '%B %d, %Y' , '%d/%m/%Y', '%m/%d/%Y', 
-                '%m/%d/%y', '%Y.%m.%d', '%d.%m.%Y', '%m.%d.%Y', '%B %d %Y', '%B %Y', '%c', '%x', '\'%Y']
+    date_formats = 
+    ['%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '(%d %b %Y)', '%d-%m-%Y', '%m-%d-%Y', '%m-%d-%y', '%Y-%m-%d', '%d-%m-%y',
+    '%b. %d, %Y', '%Y/%m/%d', '%Y', '%B %d, %Y' , '%d/%m/%Y', '%m/%d/%Y','%m/%d/%y', '%Y.%m.%d', '%d.%m.%Y', 
+    '%m.%d.%Y', '%B %d %Y', '%B %Y', '%c', '%x', '%y', '%-y']
+    
+    Note: this function does not recognize all possible date formats and hence potentially messes up. Also
+    if a column only contains numbers with 2 or 4 digits it will think they are years and hence assigns date.
     """
     logger.info('Start detecting datatypes for all columns of dataframe:')
     types_dict = {}
     for column in df:
-        if('_id' in column): continue
+        if(any(substring in column for substring in lst_of_ids_to_be_removed)): continue
         values_in_column = df[column].dropna()
         length = len(values_in_column)
+        
         k=0
         types_list=list(set(values_in_column.apply(type).tolist()))
     
@@ -95,68 +100,86 @@ def getDataTypes(df):
         else:
             #check for date because python type function does not detect date formats within strings
             if str in types_list:
+                words_per_row = [len(s.split()) for s in values_in_column.tolist()]
+                avg_words_per_row = np.mean(words_per_row)
                 if(values_in_column.nunique()<=2):
+                    # if a column only contains two different values (need to be exact) other than NaN
+                    # it gets custom assigned, where then only exact similarity is measured as feature
                     types_dict[column] = 'custom'
                     logger.info('Datatype for Column {} detected: {}'.format(column, types_dict[column]))
                     continue
-                for value in values_in_column:
-                    if ((k<=(length/2)) and (sim.get_date_format(value)!='NO DATE')):
-                        k += 1
-                logger.debug('k is equal to: {}'.format(k))
-                if(k>=(length/2)):
-                    # if most of the time date was detected date is assigned as data type for this column
-                    types_dict[column] = 'date'
+                # if a column on average contains more than 6 words for each row, long_str is assigned
+                elif(avg_words_per_row>6):
+                        types_dict[column] = 'long_str'
+                        logger.info('Datatype for Column {} detected: {} with avg_length {}'.format(column, types_dict[column], avg_words_per_row))
+                        continue
                 else:
-                    # if more string than date then string is assigned
-                    types_dict[column] = 'str'
+                    for value in values_in_column:
+                        if ((k<=(length/2)) and (sim.get_date_format(value)!='NO DATE')):
+                            k += 1
+                    logger.debug('k is equal to: {}'.format(k))
+                    if(k>=(length/2)):
+                        # if most of the time date was detected date is assigned as data type for this column
+                        types_dict[column] = 'date'
+                    else:
+                        # if more string than date then string is assigned
+                        types_dict[column] = 'str'
             else:
                 # if not string or date and only one data type was detected, integer is assigend as data_type of column
-                types_dict[column] = 'num'
+                # it first needs to be checked if it possible that the whole column contains years in format YYYY (%Y)
+                # or YY (%y) that are stored as numbers but actually should be data
+                for value in values_in_column:
+                    if (sim.get_date_format(value)=='NO DATE'):
+                        # if at leat one number is not 2 or 4 digits long it will assign num and stop the for loop
+                        types_dict[column] = 'num'
+                        pass
+                    else:
+                        # if only date (which needs to)
+                        types_dict[column] = 'date'
+                        
         logger.info('Datatype for Column {} detected: {}'.format(column, types_dict[column]))
     return types_dict
 
 #%%
 
-def checkAlignedDataTypes(types_dict_list):
-    """
-    This function takes as input a list of dictionaries. Each dictionary should contain as keys the column of the dataset 
-    and as corresponding value the data type for that column. The function then checks whether the common attributes among
-    the datasets share the same data type, which is a requirement in order to create potential correspondences and labeled
-    feature vectors.
-    If the data types are the same across all common attributes, the function returns True and False otherwise.
-    """
-    lst = []
-    aligned_types_lst = []
-    for types_dict in types_dict_list:
-        keys = ['_'.join(s.split('_')[1:]) for s in list(types_dict.keys())]
-        values = types_dict.values()
-        lst.append(tuple(zip(keys,values)))
-        aligned_types_lst.append(dict(zip(keys,values)))
-    lst = [item for sublist in lst for item in sublist]
-    
-    wrong_format = removeElements(lst,2,less_than_k=True)
-    logger.debug('wrong format: '.format(wrong_format))
-    
-    if(len(wrong_format)>0):
-        for i in range(len(wrong_format)):
-            key = wrong_format[i][0]
-            logger.info('Different Format for {}'.format(key))
-            key_value_lst = [types_dict[key] for types_dict in aligned_types_lst]
-            #key_value_lst = []
-            #for types_dict in aligned_types_lst:
-            #    key_value_lst.append(types_dict[key])
-            key_value_set = set(key_value_lst)
-            logger.info('Types: {}'.format(key_value_set))
-        logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
-        return False
-    else:
-        logger.info('All Datasets share the same Data Type across common attributes!')
-        return True
-
+#def checkAlignedDataTypes(types_dict_list, number_ds):
+#    """
+#    This function takes as input a list of dictionaries. Each dictionary should contain as keys the column of the dataset 
+#    and as corresponding value the data type for that column. The function then checks whether the common attributes among
+#    the datasets share the same data type, which is a requirement in order to create potential correspondences and labeled
+#    feature vectors.
+#    If the data types are the same across all common attributes, the function returns True and False otherwise.
+#    """
+#    lst = []
+#    aligned_types_lst = []
+#    for types_dict in types_dict_list:
+#        keys = ['_'.join(s.split('_')[1:]) for s in list(types_dict.keys())]
+#        values = types_dict.values()
+#        lst.append(tuple(zip(keys,values)))
+#        aligned_types_lst.append(dict(zip(keys,values)))
+#    lst = [item for sublist in lst for item in sublist]
+#    
+#    wrong_format = removeElements(lst,number_ds,less_than_k=True)
+#    logger.debug('wrong format: '.format(wrong_format))
+#    
+#    if(len(wrong_format)>0):
+#        for i in range(len(wrong_format)):
+#            key = wrong_format[i][0]
+#            logger.info('Different Format for {}'.format(key))
+#            key_value_lst = [types_dict[key] for types_dict in aligned_types_lst]
+#            #key_value_lst = []
+#            #for types_dict in aligned_types_lst:
+#            #    key_value_lst.append(types_dict[key])
+#            key_value_set = set(key_value_lst)
+#            logger.info('Types: {}'.format(key_value_set))
+#        logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
+#        return False
+#    else:
+#        logger.info('All Datasets share the same Data Type across common attributes!')
+#        return True
 
 #%%
-
-def getAlignedDataTypeSchema(types_dict_list, lst_of_ids_to_be_removed=[]):
+def getAlignedDataTypeSchema(types_dict_list, number_ds):
     """
     This function takes as input a list of dictionaries that contain as keys the column of each dataset and as 
     corresponding value the data type for that column (output of function getDataType(df). 
@@ -165,7 +188,7 @@ def getAlignedDataTypeSchema(types_dict_list, lst_of_ids_to_be_removed=[]):
     The output is the final type_per_column dictionary that is required in order to create the labeled feature
     vector with createLabeledFeatureVector()
     """
-    ids_to_be_removed = set(lst_of_ids_to_be_removed)
+    #ids_to_be_removed = set(lst_of_ids_to_be_removed)
     lst = []
     aligned_types_lst = []
     for types_dict in types_dict_list:
@@ -175,42 +198,65 @@ def getAlignedDataTypeSchema(types_dict_list, lst_of_ids_to_be_removed=[]):
         aligned_types_lst.append(dict(zip(keys,values)))
     lst = [item for sublist in lst for item in sublist]
     
-    wrong_format = removeElements(lst,2,less_than_k=True)
-    logger.debug('wrong format: '.format(wrong_format))
+    d = defaultdict(list)
+
+    for k, *v in lst:
+        d[k].append(v)
     
-    if(len(wrong_format)>0):
-        for i in range(len(wrong_format)):
-            key = wrong_format[i][0]
-            logger.info('Different Format for {}'.format(key))
-            key_value_lst = []
-            for types_dict in aligned_types_lst:
-                key_value_lst.append(types_dict[key])
-            key_value_set = set(key_value_lst)
-            logger.info('Types: {}'.format(key_value_set))
-        logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
-        return None
-    else:
-        final_data_type_dict = dict(set(removeElements(lst,2)))
-        if(len(ids_to_be_removed)>0):
-            for item in ids_to_be_removed:
-                final_data_type_dict.pop(item,None)
-        return final_data_type_dict
+    final_data_type_dict = {}
+    d = dict(d)
+    for key in d:
+        d[key] = [k for sublst in d[key] for k in sublst]
+        if 'long_str' in d[key]:
+            # if at least one data source has long string for a attribute assign long_string
+            final_data_type_dict.update({key:'long_str'})
+        elif len(set(d[key]))>1:
+            # if more than two different datatypes were detected but not long_str and str assign str
+            final_data_type_dict.update({key:'str'})
+        else:
+            # if only one then perfect ;)
+            final_data_type_dict.update({key:d[key][0]})
+    
+#    wrong_format = removeElements(lst,number_ds,less_than_k=True)
+#    logger.debug('wrong format: '.format(wrong_format))
+#    
+#    if(len(wrong_format)>0):
+#        for i in range(len(wrong_format)):
+#            key = wrong_format[i][0]
+#            logger.info('Different Format for {}'.format(key))
+#            key_value_lst = []
+#            for types_dict in aligned_types_lst:
+#                key_value_lst.append(types_dict[key])
+#            key_value_set = set(key_value_lst)
+#            if(wrong_format[i][1] == 'str' and 'long_str' in [i for i in key_value_set]):
+#                final_data_type_dict = dict((set(removeElements(lst,2)))) # basically removes duplicates so that one type per column is assigned
+#                logger.info('For {} at least one colum has str instead of long_str. But take majority.'.format(key))
+#            elif(wrong_format[i][1] == 'long_str' and 'str' in [i for i in key_value_set]):
+#                final_data_type_dict = dict((set(removeElements(lst,2)))) # basically removes duplicates so that one type per column is assigned
+#                logger.info('For {} at least one colum has long_str instead of str. But take majority.'.format(key))
+#            else:
+#                logger.info('For attribute {} the type {} is not compatible with {} '.format(key, wrong_format[i][1], key_value_set))
+#                logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
+#                return None
+#    else:
+#        final_data_type_dict = dict(set(removeElements(lst,number_ds)))
+##        if(len(ids_to_be_removed)>0):
+##            for item in ids_to_be_removed:
+##                final_data_type_dict.pop(item,None)
+#    logger.info('type_per_column dictionary returned')
+    return final_data_type_dict
 
 
 #%%
 
 def returnAlignedDataTypeSchema(df_dict,lst_of_ids_to_be_removed=[]):
     dt_dfs_lst = []
+    number_ds = len(df_dict.keys())
     for df in df_dict:
-        dt_dfs_lst.append(getDataTypes(df_dict[df]))
-    
-    if(checkAlignedDataTypes(dt_dfs_lst)):
-        type_per_column = getAlignedDataTypeSchema(dt_dfs_lst,lst_of_ids_to_be_removed)
-        logger.info('type_per_column dictionary returned')
-        return type_per_column
-    else:
-        logger.info('type_per_column dictionarynot returned but list')
-        return dt_dfs_lst
+        logger.info('Start with {}'.format(df))
+        dt_dfs_lst.append(getDataTypes(df_dict[df],lst_of_ids_to_be_removed))
+        logger.debug(dt_dfs_lst)
+    return getAlignedDataTypeSchema(dt_dfs_lst,number_ds)
 
 
 #%%
@@ -402,7 +448,12 @@ def createLabeledFeatureVector(corr, type_per_column, columns_to_be_dropped=[], 
         logger.error('No Unique Identifier defined!')
         return None
     feature_vector = pd.DataFrame()
-    corr_columns = corr.columns.drop(columns_to_be_dropped)
+    if('_id' in columns_to_be_dropped):
+        columns_to_be_dropped.remove('_id')
+    cols = [c for c in corr.columns for substring in columns_to_be_dropped if substring in c.lower()]
+    if('_id' in corr.columns):
+        cols.append('_id')
+    corr_columns = corr.columns.drop(cols)
     
     if(no_prefix):
         corr_l_name = corr_columns.str.split('_')[0][0] #to get the name of the orignial data source
@@ -506,169 +557,140 @@ def calcSimSeries(series1, series2, attrName, data_type):
     between the two pd.Series
     """
     df = pd.concat([series1,series2], axis=1, sort=False,ignore_index=True)
-    if(data_type=='str'):
+    if(data_type=='long_str'):
+        ### PREPROCESSING ###
+        # remove english stopwords and apply porter stemmer for long strings
+        # use function remove_sw(string,output_list=False,stem=True) from sim_measures for that
+        # it also applies re.sub('[^A-Za-z0-9\s\t\n]+', '', str(string).lower().strip()).split() to the string
+        df.iloc[:,0] = df.iloc[:,0].apply(lambda s: sim.remove_sw(s,output_list=False,stem=True))
+        df.iloc[:,1] = df.iloc[:,1].apply(lambda s: sim.remove_sw(s,output_list=False,stem=True))
+        # create a mask that is true if at least one of the two colums contain NaN value or empty string
+        mask = ((df.iloc[:,0]=='nan') | (df.iloc[:,1]=='nan') | (df.iloc[:,0]=='') | (df.iloc[:,1]==''))
+        ### COSINE ###
+        ser_cosine_tfidf_sim = pd.Series(sim.calculate_cosine_tfidf(df))
+        ser_cosine_tfidf_sim.where(~mask,other=-1,inplace=True)
+        logger.debug('Cosine similarity with TfIdf-Weighting measured for {} as it is a long_str'.format(attrName))
+        ### LEVENSHTEIN ###
         ser_lev_sim = df.apply(lambda row: sim.lev_sim(row[0],row[1]),axis=1)
         logger.debug('Levenshtein Similarity measured for {}'.format(attrName))
-        #q3_tok = sm.QgramTokenizer(qval=3,return_set=True)
-        #q3_tok_row0 = df[0].apply(lambda s: q3_tok.tokenize(s.lower().strip()) if (s.lower().strip() != '' or s.lower().strip() != 'nan' else []) )
-        #q3_tok_row1 = df[1].apply(lambda s: q3_tok.tokenize(s.lower().strip()) if (s.lower().strip() != '' or s.lower().strip() != 'nan' else [])
-        #df_temp = pd.DataFrame([q3_tok_row0,q3_tok_row1])
-        #ser_jac_w_sim = df_temp.apply(lambda row: jac_sim(row[0],row[1]),axis=1)
+        ### JACCARD 3-GRAM ###
         ser_jac_q3_sim = df.apply(lambda row: sim.jac_q3_sim(row[0],row[1]),axis=1)
         logger.debug('Jaccard Similarity with trigram tokenization measured for {}'.format(attrName))
+        ### JACCARD WS/AN ###
         ser_jac_an_sim = df.apply(lambda row: sim.jac_an_sim(row[0],row[1]),axis=1)
-        logger.debug('Jaccard Similarity with alphanumeric tokenization measured for {}'.format(attrName))
+        # as we apply re.sub('[^A-Za-z0-9\s\t\n]+', '', str(string).lower().strip()).split() whitespace tok. is is basically like alphanumeric tok.
+        logger.debug('Jaccard Similarity with whitespace tokenization measured for {}'.format(attrName))
+        ### RELAXED JACCARD ###
+        ser_rel_jac_sim = df.apply(lambda row: sim.relaxed_jaccard_sim(row[0],row[1]),axis=1)
+        logger.debug('Relaxed Jaccard Similarity with whitespace tokenization and Inner Levenshtein measured for {}'.format(attrName))
+        ### CONTAINMENT ###
+        ser_containment_sim = df.apply(lambda row: sim.containment_sim(row[0],row[1]),axis=1)
+        logger.debug('Relaxed Jaccard Similarity with whitespace tokenization and Inner Levenshtein measured for {}'.format(attrName))
+        ### EXACT SIM ###
         ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
         logger.debug('Exact Similarity measured for {}'.format(attrName))
-        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-        logger.debug('All missing measured for {}'.format(attrName))
+        #commented out all_missing as could be misleading (-1 already assigned for missing 
+        #values no valuable info if both missing as everything -1 then)
+        ### ALL MISSING ###
+#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
+#        logger.debug('All missing measured for {}'.format(attrName))
+        # finished calculating similarity measures for this attribute
         logger.debug('Similarity measures calculated for {}'.format(attrName))
-        df = pd.concat([ser_lev_sim,ser_jac_q3_sim,ser_jac_an_sim,ser_exact_sim,ser_all_missing],axis=1,sort=False,ignore_index=True)
-        df.rename({0:attrName+'_lev_sim', 1:attrName+'_jac_q3_sim', 2:attrName+'_jac_an_sim', 3:attrName+'_exact_sim', 4:attrName+'_all_missing'},axis=1,inplace=True)
+        # create DataFrame with results
+        if(ser_cosine_tfidf_sim.shape[0] != ser_lev_sim.shape[0]):
+            raise ValueError('Something wrong with cosine tfidf calculation. Wrong shape!')
+        df = pd.concat([ser_cosine_tfidf_sim,ser_lev_sim,ser_jac_q3_sim,ser_jac_an_sim,ser_rel_jac_sim,ser_containment_sim,ser_exact_sim],axis=1,sort=False,ignore_index=True)
+        # rename. did it in two steps as it is 
+        df.rename({0:attrName+'_cosine_tfidf_sim',1:attrName+'_lev_sim', 2:attrName+'_jac_q3_sim', 3:attrName+'_jac_an_sim', 4:attrName+'_rel_jac_an_sim', 5:attrName+'_containment_sim', 6:attrName+'_exact_sim'},axis=1,inplace=True)
+        return df
+    elif(data_type=='str'):
+        # for string no stop words are removed and also no stemming is applied
+        # we only ensure the strings are lower cased and stripped and remove signs other than letters, digits, and whitespaces
+        # we do it here for all values so we do not need to perform it everytime when calculating the sim measures
+        df.iloc[:,0] = df.iloc[:,0].apply(lambda s: re.sub('[^A-Za-z0-9\s]+', '', str(s).lower().strip()))
+        df.iloc[:,1] = df.iloc[:,1].apply(lambda s: re.sub('[^A-Za-z0-9\s]+', '', str(s).lower().strip()))
+        ### LEVENSHTEIN ###
+        ser_lev_sim = df.apply(lambda row: sim.lev_sim(row[0],row[1]),axis=1)
+        logger.debug('Levenshtein Similarity measured for {}'.format(attrName))
+        ### JACCARD 3-GRAM ###
+        ser_jac_q3_sim = df.apply(lambda row: sim.jac_q3_sim(row[0],row[1]),axis=1)
+        logger.debug('Jaccard Similarity with trigram tokenization measured for {}'.format(attrName))
+        ### JACCARD WS/AN ###
+        ser_jac_an_sim = df.apply(lambda row: sim.jac_an_sim(row[0],row[1]),axis=1)
+        # as we apply re.sub('[^A-Za-z0-9\s\t\n]+', '', str(string).lower().strip()).split() whitespace tok. is is basically like alphanumeric tok.
+        logger.debug('Jaccard Similarity with whitespace tokenization measured for {}'.format(attrName))
+        ### RELAXED JACCARD ###
+        ser_rel_jac_sim = df.apply(lambda row: sim.relaxed_jaccard_sim(row[0],row[1]),axis=1)
+        logger.debug('Relaxed Jaccard Similarity with whitespace tokenization and Inner Levenshtein measured for {}'.format(attrName))
+        ### CONTAINMENT ###
+        ser_containment_sim = df.apply(lambda row: sim.containment_sim(row[0],row[1]),axis=1)
+        logger.debug('Relaxed Jaccard Similarity with whitespace tokenization and Inner Levenshtein measured for {}'.format(attrName))
+        ### EXACT SIM ###
+        ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
+        logger.debug('Exact Similarity measured for {}'.format(attrName))
+        #commented out all_missing as could be misleading (-1 already assigned for missing 
+        #values no valuable info if both missing as everything -1 then)
+        ### ALL MISSING ###
+#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
+#        logger.debug('All missing measured for {}'.format(attrName))
+        # finished calculating similarity measures for this attribute
+        logger.debug('Similarity measures calculated for {}'.format(attrName))
+        # create DataFrame with results
+        df = pd.concat([ser_lev_sim,ser_jac_q3_sim,ser_jac_an_sim,ser_rel_jac_sim,ser_containment_sim,ser_exact_sim],axis=1,sort=False,ignore_index=True)
+        # rename. did it in two steps as it is 
+        df.rename({0:attrName+'_lev_sim', 1:attrName+'_jac_q3_sim', 2:attrName+'_jac_an_sim', 3:attrName+'_rel_jac_an_sim', 4:attrName+'_containment_sim', 5:attrName+'_exact_sim'},axis=1,inplace=True)
         return df
     elif(data_type=='num'):
         ser_num_abs_diff = df.apply(lambda row: sim.num_abs_diff(row[0],row[1]),axis=1)
         logger.debug('Absolute Difference measured for {}'.format(attrName))
-        ser_num_sim = df.apply(lambda row: sim.num_sim(row[0],row[1]),axis=1)
-        logger.debug('Numeric Similarity measured for {}'.format(attrName))
-        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-        logger.debug('All missing measured for {}'.format(attrName))
+#        ser_num_sim = df.apply(lambda row: sim.num_sim(row[0],row[1]),axis=1)
+#        logger.debug('Numeric Similarity measured for {}'.format(attrName))
+        # all_missing commented out because it does not provide valuable info
+#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
+#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
-        df = pd.concat([ser_num_abs_diff,ser_num_sim,ser_all_missing],axis=1,sort=False,ignore_index=True)
-        df.rename({0:attrName+'_num_abs_diff', 1:attrName+'_num_sim', 2:attrName+'_all_missing'},axis=1,inplace=True)
+        df = pd.DataFrame({attrName+'_num_abs_diff':ser_num_abs_diff})
+#        df = pd.concat([ser_num_abs_diff,ser_num_sim],axis=1,sort=False,ignore_index=True)
+#        df.rename({0:attrName+'_num_abs_diff', 1:attrName+'_num_sim'},axis=1,inplace=True)
         return df
     elif(data_type=='date'):
         df[0] = df[0].apply(lambda s: sim.alignDTFormat(s))
         df[1] = df[1].apply(lambda s: sim.alignDTFormat(s))
-        ser_days_sim = df.apply(lambda row: sim.days_sim(row[0],row[1]),axis=1)
-        logger.debug('Days Similarity measured for {}'.format(attrName))
-        ser_years_sim = df.apply(lambda row: sim.years_sim(row[0],row[1]),axis=1)
-        logger.debug('Years Similarity measured for {}'.format(attrName))
+#        ser_days_sim = df.apply(lambda row: sim.days_sim(row[0],row[1]),axis=1)
+#        logger.debug('Days Similarity measured for {}'.format(attrName))
+#        ser_years_sim = df.apply(lambda row: sim.years_sim(row[0],row[1]),axis=1)
+#        logger.debug('Years Similarity measured for {}'.format(attrName))
+        ser_years_diff = df.apply(lambda row: sim.years_diff(row[0],row[1]),axis=1)
+        logger.debug('Years Difference measured for {}'.format(attrName))
+        ser_months_diff = df.apply(lambda row: sim.months_diff(row[0],row[1]),axis=1)
+        logger.debug('Months Difference measured for {}'.format(attrName))
         ser_days_diff = df.apply(lambda row: sim.days_diff(row[0],row[1]),axis=1)
         logger.debug('Days Difference measured for {}'.format(attrName))
-        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-        logger.debug('All missing measured for {}'.format(attrName))
+        # all_missing commented out because it does not provide valuable info
+#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
+#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
-        df = pd.concat([ser_days_sim,ser_years_sim,ser_days_diff,ser_all_missing],axis=1,sort=False,ignore_index=True)
-        df.rename({0:attrName+'_days_sim', 1:attrName+'_years_sim', 2:attrName+'_days_diff', 3:attrName+'_all_missing'},axis=1,inplace=True)
+        df = pd.concat([ser_days_diff,ser_months_diff,ser_years_diff],axis=1,sort=False,ignore_index=True)
+        df.rename({0:attrName+'_days_diff', 1:attrName+'_months_diff', 2:attrName+'_years_diff'},axis=1,inplace=True)
+#        df = pd.concat([ser_days_sim,ser_years_sim,ser_days_diff],axis=1,sort=False,ignore_index=True)
+#        df.rename({0:attrName+'_days_sim', 1:attrName+'_years_sim', 2:attrName+'_days_diff'},axis=1,inplace=True)
         return df
+    # custom is for binary attributes (maybe not relevant)
     elif(data_type=='custom'):
         ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
         logger.debug('Exact Similarity measured for {}'.format(attrName))
-        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-        logger.debug('All missing measured for {}'.format(attrName))
+        # all_missing commented out because it does not provide valuable info
+#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
+#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
-        df = pd.concat([ser_exact_sim,ser_all_missing],axis=1,sort=False,ignore_index=True)
-        df.rename({0:attrName+'_exact_sim', 1:attrName+'_all_missing'},axis=1,inplace=True)
+        df = pd.DataFrame({attrName+'_exact_sim':ser_exact_sim})
+#        df = pd.concat([ser_exact_sim],axis=1,sort=False,ignore_index=True)
+#        df.rename({0:attrName+'_exact_sim'},axis=1,inplace=True)
         return df
     else:
         logger.error('No Similarity Measure for {} DataType defined.'.format(data_type))
         return None
 
-
-#%%
-
-def calcSim(l_value, r_value, sim, data_type='str'):
-    """
-    [DEPRECATED] Calc the similariy between two values by providing the similarity measure (sim) as implemented in module 
-    sim_measures and the corresponding data_type. This function is not used, though.
-    """
-    if(data_type=='str'):
-        if(sim=='lev_sim'):
-            return sim.lev_sim(l_value, r_value)
-        elif(sim=='jac_q3_sim'):
-            return sim.jac_q3_sim(l_value, r_value)
-        elif(sim=='jac_w_sim'):
-            return sim.jac_w_sim(l_value, r_value)
-        elif(sim=='exact_sim'):
-            return sim.exact_sim(l_value, r_value)
-        elif(sim=='nw_sim'):
-            return sim.nw_sim(l_value, r_value)
-        elif(sim=='all_missing'):
-            return sim.all_missing(l_value, r_value)
-        else:
-            logger.error('Similarity Measure for String not defined.')
-    elif(data_type=='num'):
-        if(sim=='num_abs_diff'):
-            return sim.num_abs_diff(l_value, r_value)
-        elif(sim=='num_sim'):
-            return sim.num_sim(l_value, r_value)
-        elif(sim=='all_missing'):
-            return sim.all_missing(l_value, r_value)
-        else:
-            logger.error('Similarity Measure for Numeric Values not defined.')
-    elif(data_type=='date'):
-        l_value = sim.alignDTFormat(l_value)
-        r_value = sim.alignDTFormat(l_value)
-        if(sim=='days_sim'):
-            return sim.days_sim(l_value, r_value)
-        elif(sim=='years_sim'):
-            return sim.years_sim(l_value, r_value)
-        elif(sim=='days_diff'):
-            return sim.days_sim(l_value, r_value)
-        else:
-            logger.error('Similarity Measure for Date Values not defined.')
-    elif(data_type=='custom'):
-        l_value = sim.alignDTFormat(l_value)
-        r_value = sim.alignDTFormat(l_value)
-        if(sim=='exact_sim'):
-            return sim.exact_sim(l_value, r_value)
-        elif(sim=='all_missing'):
-            return sim.years_sim(l_value, r_value)
-        elif(sim=='days_diff'):
-            return sim.all_missing(l_value, r_value)
-        else:
-            logger.error('Custom Similarity Measure not defined.')
-
-
-#%%
-    
-def rescaleFeatureVectors(feature_vector, col_to_be_dropped=['l_id', 'r_id', 'label'], col_to_be_rescaled_endswith='diff'):
-    """
-    This function rescales all features that are not already a similarity score (range 0 to 1)
-    but a distance or difference. Important the similarity scores calculated with Levenshtein
-    are already a true similarity score (range 0 to 1) and not a distance anymore. Hence,
-    they do not get rescaled here. Only the columns that end with the name as specified by col_to_be_rescaled_endswith
-    are rescaled
-    This function does not return anything but changes the dataframe feature_vector inplace provided as argument.
-    """
-    logger.info('Rescaling features that end with {}'.format(col_to_be_rescaled_endswith))
-    feature_vector.replace(-1, np.nan, inplace=True)
-    for column in feature_vector.columns.drop(col_to_be_dropped):
-        if (column.endswith(col_to_be_rescaled_endswith)):
-            feature_vector[column] -= feature_vector[column].min()
-            feature_vector[column] /= feature_vector[column].max()
-            feature_vector[column] = 1 - feature_vector[column]
-            feature_vector.rename(columns={column: column.replace(col_to_be_rescaled_endswith, '{}_sim'.format(col_to_be_rescaled_endswith))}, inplace=True)
-    feature_vector.replace(np.nan,-1, inplace=True)
-    logger.info('All features from the frature_vector dataframes that end with {} are now rescaled inplace'.format(col_to_be_rescaled_endswith))
-        
-#%%
-    
-def rescaleFeatureVectorsInDict(feature_dict, col_to_be_dropped=['l_id', 'r_id', 'label'], col_to_be_rescaled_endswith='diff'):
-    """
-    This function rescales all features that are stored in the feature_vectors dataframes within the dictionary
-    feature_dict and that are not already a similarity score (range 0 to 1).
-    but a distance or difference. Important the similarity scores calculated with Levenshtein
-    are already a true similarity score (range 0 to 1) and not a distance anymore. Hence,
-    they do not get rescaled here. Only the columns that end with the name as specified by col_to_be_rescaled_endswith
-    are rescaled
-    This function does not return anything but changes the dataframe feature_vector inplace provided as argument.
-    """
-    logger.info('Rescaling feature dataframes within the dictionary that end with {}'.format(col_to_be_rescaled_endswith))
-    
-    for feature_df in feature_dict:
-        feature_vector = feature_dict[feature_df]
-        feature_vector.replace(-1, np.nan, inplace=True)
-        for column in feature_vector.columns.drop(col_to_be_dropped):
-            if (column.endswith(col_to_be_rescaled_endswith)):
-                logger.debug('Column that ends with diff found. Hence will be rescaled!')
-                feature_vector[column] -= feature_vector[column].min()
-                feature_vector[column] /= feature_vector[column].max()
-                feature_vector[column] = 1 - feature_vector[column]
-                feature_vector.rename(columns={column: column.replace(col_to_be_rescaled_endswith, '{}_sim'.format(col_to_be_rescaled_endswith))}, inplace=True)
-        feature_vector.replace(np.nan,-1, inplace=True)
-    logger.info('All features from the frature_vector dataframes within the dictionary that end with {} are now rescaled inplace'.format(col_to_be_rescaled_endswith))
 #%%
             
 def returnWeightedSumOfSimScores(feature_vector, columns_to_be_ignored=['l_id', 'r_id', 'label'], weight=None):
@@ -854,7 +876,7 @@ def returnAggSimScoresPerAttribute(feature_vector, columns_to_be_ignored=['id', 
     return feature_vector[columns_to_be_ignored+final_columns].replace(np.nan,-1)
 
 #%%
-
+# DEPRECATED
 def createCandSet(non_matches,true_matches):
     # get the bins of the true matches to get the amount of instances per bin later
     bins_true = pd.cut(true_matches['sim'],10,labels=False)
@@ -883,3 +905,144 @@ def createCandSet(non_matches,true_matches):
         sample_df = sample_df.append(sample,ignore_index=True)
         df.drop(sample.index,inplace=True)
     return sample_df
+    
+#%%
+
+def returnLabeledFeatureVectorsForCandidateSet(candset_dict, type_per_column, columns_to_be_ignored=[], identifier='', no_prefix=True):
+    """
+    Creates features of the potential correspondences for each dataset combination stored in corr_dict
+    using the pre-defined similarity measures for the corresponding data type of each attribute/column.
+    The datatypes for each column have to be stored in the type_per_column dicitionary.
+    
+    Parameters:
+    corr_dict: Dictionary containing min one dataframe containing pot. corr. of two datasest. 
+    The names of the pot. corr. dataframes are the keys in the dictionary and the dataframe itself 
+    are the values
+    
+    type_per_column: Dictionary specifying the data type of each column, so that the functions knows
+    which similarity measures need to be performed in order to create the feature vectors. 
+    This dictionary can be retrieved with the function returnAlignedDataTypeSchema(...)
+    
+    """
+    feature_dict = {}
+    for corr in candset_dict:
+        try:
+            corr_l_name = corr.split('_')[1]
+            corr_r_name = corr.split('_')[2]
+        except:
+            corr_l_name = corr.split('_')[0]
+            logger.warning('{} for the left source as name assigned. Check if correct!'.format(corr_l_name))
+            corr_r_name = corr.split('_')[1]
+            logger.warning('{} for the right source as name assigned. Check if correct!'.format(corr_r_name))
+        feature_dict.update({'feature_{}_{}'.format(corr_l_name,corr_r_name):createLabeledFeatureVectorForCandidateSets(candset_dict[corr], corr_l_name, corr_r_name, type_per_column, columns_to_be_ignored, identifier,no_prefix)})
+        logger.debug('For the pot. corr. of {} and {} features are created and stored in feature_{}_{}.'.format(corr_l_name,corr_r_name,corr_l_name,corr_r_name))
+    logger.info('\nFinished! All labeled feature vectors are created for all dataset combinations')
+    return feature_dict
+
+#%%
+def createLabeledFeatureVectorForCandidateSets(candset, corr_l_name, corr_r_name, type_per_column, columns_to_be_ignored=[], identifier='',  no_prefix=True):
+    
+    """
+    This function creates the labeled feature vectors for the pot. corr. provided with the argument corr.
+    
+    Parameters:
+    corr: Dataframe that contains the potential correspondences of two datasources (as retrieved by
+          performing filtering using the createPotentialCorr() function).
+    type_per_column: Dictionary specifying the data type of each column, so that the functions knows
+                     which similarity measures need to be performed in order to create the feature vectors. 
+                     This dictionary can be retrieved with the function returnAlignedDataTypeSchema(...)
+    columns_to_be_ignored: A list of column names that shall be ignored, like ['_id','_sim_score']
+    identifier: Name of the identifiers. Only the last part of the name. Exp: if the names of the
+                IDs are l_ban_id and r_wor_id, only 'id' has to be provided here!
+    unique_identifier: Unique identifier in order to create the labels. For the topic books this is
+                       'isbn'.
+    """
+    
+    logger.info('Start Function')
+    if(type_per_column==0):
+        logger.error('No Type per Column Dictionary defined!')
+        return None
+    feature_vector = pd.DataFrame()
+    cols = [c for c in candset.columns for substring in columns_to_be_ignored if substring in c.lower()]
+    candset_columns = candset.columns.drop(cols)
+    
+    if(no_prefix):
+        # the column names of the identifiers
+        l_id = '{}_{}'.format(corr_l_name,identifier)
+        r_id = '{}_{}'.format(corr_r_name,identifier)
+    
+        # write ids and the label in the feature_vector dataframe
+        #feature_vector['l_id'] = candset.apply(lambda row: row[l_id],axis=1)
+        #feature_vector['r_id'] = candset.apply(lambda row: row[r_id],axis=1)
+        feature_vector['ids'] = candset.apply(lambda row: '{}_{}'.format(row[l_id],row[r_id]),axis=1)
+        feature_vector['label'] = candset.apply(lambda row: row['label'],axis=1)
+    
+        # retrieve the header in order to identify the common attributes
+        corr_header = [candset_columns.str.split('_')[i][1:] for i in range(len(candset_columns)) if (len(candset_columns.str.split('_'))>1)]
+        corr_header = ['_'.join(x) for x in corr_header if len(corr_header)>1]
+        common_attributes = list(set(removeElements(corr_header,2))- set([identifier]))
+        logger.info('Common attributes identified!')
+    else:
+    
+        # the column names of the identifiers
+        l_id = 'l_{}_{}'.format(corr_l_name,identifier)
+        r_id = 'r_{}_{}'.format(corr_r_name,identifier)
+    
+        # write ids and the label in the feature_vector dataframe
+        #feature_vector['l_id'] = candset.apply(lambda row: row[l_id],axis=1)
+        #feature_vector['r_id'] = candset.apply(lambda row: row[r_id],axis=1)
+        feature_vector['ids'] = candset.apply(lambda row: '{}_{}'.format(row[l_id],row[r_id]),axis=1)
+        feature_vector['label'] = candset.apply(lambda row: row['label'],axis=1)
+    
+        # retrieve the header in order to identify the common attributes
+        corr_header = [candset_columns.str.split('_')[i][2:] for i in range(len(candset_columns)) if (len(candset_columns.str.split('_'))>2)]
+        corr_header = ['_'.join(x) for x in corr_header if len(corr_header)>1]
+        common_attributes = list(set(removeElements(corr_header,2))- set([identifier]))
+        logger.info('Common attributes identified!')
+    
+    # iterate through common_attributes in order to calculate the sim scores using the similarity measures
+    # dedicated for the specific types
+    for attr in common_attributes:
+
+        logger.info(candset.columns[candset.columns.str.endswith('{}_{}'.format(corr_l_name,attr))][0])
+        ser1 = candset[candset.columns[candset.columns.str.endswith('{}_{}'.format(corr_l_name,attr))]]
+        logger.info(candset.columns[candset.columns.str.endswith('{}_{}'.format(corr_r_name,attr))][0])
+        ser2 = candset[candset.columns[candset.columns.str.endswith('{}_{}'.format(corr_r_name,attr))]]
+        feature_vector = pd.concat([feature_vector,calcSimSeries(ser1,ser2,attr,type_per_column[attr])], axis=1)
+    logger.info('\nFinished! Labeled Feature Vectors created for {} and {}'.format(corr_l_name,corr_r_name))
+    return feature_vector
+
+#%%
+    
+def rescaleFeatureVectors(feature_vector, col_to_be_ignored=['l_id', 'r_id', 'label']):
+    """
+    This function rescales all features that are stored in the feature_vector dataframe to be in the range of [0,1]. 
+    Distance or difference scores are additionally reversed. 
+    This function does not return anything but changes the dataframe feature_vector inplace provided as argument.
+    """
+    logger.info('Rescaling features to be in range [0,1] and for features that end with diff we additionally reverse the score')
+    feature_vector.replace(-1, np.nan, inplace=True)
+    for column in feature_vector.columns.drop(col_to_be_ignored):
+        feature_vector[column] -= feature_vector[column].min()
+        feature_vector[column] /= feature_vector[column].max()
+        if (column.endswith('diff')):
+            logger.info('Column {} will additionally be reversed so 1 - rescaled score'.format(column))
+            feature_vector[column] = 1 - feature_vector[column]
+            feature_vector.rename(columns={column: column.replace('diff', '{}_sim'.format('diff'))}, inplace=True)
+    feature_vector.replace(np.nan,-1, inplace=True)
+    logger.info('All features from the frature_vector dataframe are now rescaled inplace')
+        
+#%%
+    
+def rescaleFeatureVectorsInDict(feature_dict, col_to_be_ignored=['l_id', 'r_id', 'label']):
+    """
+    This function rescales all features that are stored in the feature_vectors dataframes within the dictionary
+    feature_dict in the range of [0,1]. Distance or difference scores are additionally reversed. 
+    This function does not return anything but changes the dataframe feature_vector inplace provided as argument.
+    """
+    logger.info('Rescaling feature dataframes within the dictionary')
+    
+    for feature_df in feature_dict:
+        feature_vector = feature_dict[feature_df]
+        rescaleFeatureVectors(feature_vector, col_to_be_ignored)
+    logger.info('All feature vectors within dictionary are now rescaled inplace')

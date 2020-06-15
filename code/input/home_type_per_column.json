@@ -1,0 +1,14 @@
+{
+  "base": "str",
+  "brand": "str",
+  "capacity": "str",
+  "category": "str",
+  "color": "str",
+  "finish": "str",
+  "height": "str",
+  "material": "str",
+  "product_type": "str",
+  "shape": "str",
+  "style": "long_str",
+  "title": "long_str"
+}
