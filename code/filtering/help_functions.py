@@ -4,8 +4,6 @@
 #%%
 import pandas as pd
 import numpy as np
-#import seaborn as sns
-#import matplotlib.pyplot as plt
 import glob
 import itertools
 import re
@@ -14,23 +12,12 @@ import py_stringmatching as sm
 from collections import Counter
 import sim_measures as sim
 import logging
-import random
 import numpy.matlib
 from itertools import groupby
 from collections import defaultdict
 logger = logging.getLogger(__name__)
 import warnings
 warnings.filterwarnings('ignore')
-
-
-#%%
-
-def removeElements(lst, k, less_than_k=False): 
-    counted = Counter(lst) 
-    if(not less_than_k):  
-        return [el for el in lst if counted[el] >= k]
-    else:
-        return [el for el in lst if counted[el] < k]
 
 
 #%%
@@ -141,54 +128,14 @@ def getDataTypes(df,lst_of_ids_to_be_removed):
     return types_dict
 
 #%%
-
-#def checkAlignedDataTypes(types_dict_list, number_ds):
-#    """
-#    This function takes as input a list of dictionaries. Each dictionary should contain as keys the column of the dataset 
-#    and as corresponding value the data type for that column. The function then checks whether the common attributes among
-#    the datasets share the same data type, which is a requirement in order to create potential correspondences and labeled
-#    feature vectors.
-#    If the data types are the same across all common attributes, the function returns True and False otherwise.
-#    """
-#    lst = []
-#    aligned_types_lst = []
-#    for types_dict in types_dict_list:
-#        keys = ['_'.join(s.split('_')[1:]) for s in list(types_dict.keys())]
-#        values = types_dict.values()
-#        lst.append(tuple(zip(keys,values)))
-#        aligned_types_lst.append(dict(zip(keys,values)))
-#    lst = [item for sublist in lst for item in sublist]
-#    
-#    wrong_format = removeElements(lst,number_ds,less_than_k=True)
-#    logger.debug('wrong format: '.format(wrong_format))
-#    
-#    if(len(wrong_format)>0):
-#        for i in range(len(wrong_format)):
-#            key = wrong_format[i][0]
-#            logger.info('Different Format for {}'.format(key))
-#            key_value_lst = [types_dict[key] for types_dict in aligned_types_lst]
-#            #key_value_lst = []
-#            #for types_dict in aligned_types_lst:
-#            #    key_value_lst.append(types_dict[key])
-#            key_value_set = set(key_value_lst)
-#            logger.info('Types: {}'.format(key_value_set))
-#        logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
-#        return False
-#    else:
-#        logger.info('All Datasets share the same Data Type across common attributes!')
-#        return True
-
-#%%
 def getAlignedDataTypeSchema(types_dict_list, number_ds):
     """
     This function takes as input a list of dictionaries that contain as keys the column of each dataset and as 
-    corresponding value the data type for that column (output of function getDataType(df). 
-    Besides that, one can optionally pass as second argument a list of column names that act as ids among all datasets 
-    and hence can be removed from the dictionary.
+    corresponding value the data type for that column (output of function getDataType(df). It also requires
+    the amount of data sources involved as second argument
     The output is the final type_per_column dictionary that is required in order to create the labeled feature
     vector with createLabeledFeatureVector()
     """
-    #ids_to_be_removed = set(lst_of_ids_to_be_removed)
     lst = []
     aligned_types_lst = []
     for types_dict in types_dict_list:
@@ -216,34 +163,7 @@ def getAlignedDataTypeSchema(types_dict_list, number_ds):
         else:
             # if only one then perfect ;)
             final_data_type_dict.update({key:d[key][0]})
-    
-#    wrong_format = removeElements(lst,number_ds,less_than_k=True)
-#    logger.debug('wrong format: '.format(wrong_format))
-#    
-#    if(len(wrong_format)>0):
-#        for i in range(len(wrong_format)):
-#            key = wrong_format[i][0]
-#            logger.info('Different Format for {}'.format(key))
-#            key_value_lst = []
-#            for types_dict in aligned_types_lst:
-#                key_value_lst.append(types_dict[key])
-#            key_value_set = set(key_value_lst)
-#            if(wrong_format[i][1] == 'str' and 'long_str' in [i for i in key_value_set]):
-#                final_data_type_dict = dict((set(removeElements(lst,2)))) # basically removes duplicates so that one type per column is assigned
-#                logger.info('For {} at least one colum has str instead of long_str. But take majority.'.format(key))
-#            elif(wrong_format[i][1] == 'long_str' and 'str' in [i for i in key_value_set]):
-#                final_data_type_dict = dict((set(removeElements(lst,2)))) # basically removes duplicates so that one type per column is assigned
-#                logger.info('For {} at least one colum has long_str instead of str. But take majority.'.format(key))
-#            else:
-#                logger.info('For attribute {} the type {} is not compatible with {} '.format(key, wrong_format[i][1], key_value_set))
-#                logger.info('No Dictionary with Data Type per Column can be returned. Align schema and format of correpsonding columns first!')
-#                return None
-#    else:
-#        final_data_type_dict = dict(set(removeElements(lst,number_ds)))
-##        if(len(ids_to_be_removed)>0):
-##            for item in ids_to_be_removed:
-##                final_data_type_dict.pop(item,None)
-#    logger.info('type_per_column dictionary returned')
+
     return final_data_type_dict
 
 
@@ -589,11 +509,6 @@ def calcSimSeries(series1, series2, attrName, data_type):
         ### EXACT SIM ###
         ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
         logger.debug('Exact Similarity measured for {}'.format(attrName))
-        #commented out all_missing as could be misleading (-1 already assigned for missing 
-        #values no valuable info if both missing as everything -1 then)
-        ### ALL MISSING ###
-#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-#        logger.debug('All missing measured for {}'.format(attrName))
         # finished calculating similarity measures for this attribute
         logger.debug('Similarity measures calculated for {}'.format(attrName))
         # create DataFrame with results
@@ -628,203 +543,41 @@ def calcSimSeries(series1, series2, attrName, data_type):
         ### EXACT SIM ###
         ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
         logger.debug('Exact Similarity measured for {}'.format(attrName))
-        #commented out all_missing as could be misleading (-1 already assigned for missing 
-        #values no valuable info if both missing as everything -1 then)
-        ### ALL MISSING ###
-#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-#        logger.debug('All missing measured for {}'.format(attrName))
-        # finished calculating similarity measures for this attribute
         logger.debug('Similarity measures calculated for {}'.format(attrName))
         # create DataFrame with results
         df = pd.concat([ser_lev_sim,ser_jac_q3_sim,ser_jac_an_sim,ser_rel_jac_sim,ser_containment_sim,ser_exact_sim],axis=1,sort=False,ignore_index=True)
-        # rename. did it in two steps as it is 
+        # rename them. did it in two steps
         df.rename({0:attrName+'_lev_sim', 1:attrName+'_jac_q3_sim', 2:attrName+'_jac_an_sim', 3:attrName+'_rel_jac_an_sim', 4:attrName+'_containment_sim', 5:attrName+'_exact_sim'},axis=1,inplace=True)
         return df
     elif(data_type=='num'):
         ser_num_abs_diff = df.apply(lambda row: sim.num_abs_diff(row[0],row[1]),axis=1)
         logger.debug('Absolute Difference measured for {}'.format(attrName))
-#        ser_num_sim = df.apply(lambda row: sim.num_sim(row[0],row[1]),axis=1)
-#        logger.debug('Numeric Similarity measured for {}'.format(attrName))
-        # all_missing commented out because it does not provide valuable info
-#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
         df = pd.DataFrame({attrName+'_num_abs_diff':ser_num_abs_diff})
-#        df = pd.concat([ser_num_abs_diff,ser_num_sim],axis=1,sort=False,ignore_index=True)
-#        df.rename({0:attrName+'_num_abs_diff', 1:attrName+'_num_sim'},axis=1,inplace=True)
         return df
     elif(data_type=='date'):
         df[0] = df[0].apply(lambda s: sim.alignDTFormat(s))
         df[1] = df[1].apply(lambda s: sim.alignDTFormat(s))
-#        ser_days_sim = df.apply(lambda row: sim.days_sim(row[0],row[1]),axis=1)
-#        logger.debug('Days Similarity measured for {}'.format(attrName))
-#        ser_years_sim = df.apply(lambda row: sim.years_sim(row[0],row[1]),axis=1)
-#        logger.debug('Years Similarity measured for {}'.format(attrName))
         ser_years_diff = df.apply(lambda row: sim.years_diff(row[0],row[1]),axis=1)
         logger.debug('Years Difference measured for {}'.format(attrName))
         ser_months_diff = df.apply(lambda row: sim.months_diff(row[0],row[1]),axis=1)
         logger.debug('Months Difference measured for {}'.format(attrName))
         ser_days_diff = df.apply(lambda row: sim.days_diff(row[0],row[1]),axis=1)
         logger.debug('Days Difference measured for {}'.format(attrName))
-        # all_missing commented out because it does not provide valuable info
-#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
         df = pd.concat([ser_days_diff,ser_months_diff,ser_years_diff],axis=1,sort=False,ignore_index=True)
         df.rename({0:attrName+'_days_diff', 1:attrName+'_months_diff', 2:attrName+'_years_diff'},axis=1,inplace=True)
-#        df = pd.concat([ser_days_sim,ser_years_sim,ser_days_diff],axis=1,sort=False,ignore_index=True)
-#        df.rename({0:attrName+'_days_sim', 1:attrName+'_years_sim', 2:attrName+'_days_diff'},axis=1,inplace=True)
         return df
-    # custom is for binary attributes (maybe not relevant)
+    # custom is for binary attributes (i.e. only exactly two different values allowed)
     elif(data_type=='custom'):
         ser_exact_sim = df.apply(lambda row: sim.exact_sim(row[0],row[1]),axis=1)
         logger.debug('Exact Similarity measured for {}'.format(attrName))
-        # all_missing commented out because it does not provide valuable info
-#        ser_all_missing = df.apply(lambda row: sim.all_missing(row[0],row[1]),axis=1)
-#        logger.debug('All missing measured for {}'.format(attrName))
         logger.debug('Similarity measures calculated for {}'.format(attrName))
         df = pd.DataFrame({attrName+'_exact_sim':ser_exact_sim})
-#        df = pd.concat([ser_exact_sim],axis=1,sort=False,ignore_index=True)
-#        df.rename({0:attrName+'_exact_sim'},axis=1,inplace=True)
         return df
     else:
         logger.error('No Similarity Measure for {} DataType defined.'.format(data_type))
         return None
-
-#%%
-            
-def returnWeightedSumOfSimScores(feature_vector, columns_to_be_ignored=['l_id', 'r_id', 'label'], weight=None):
-    """
-    Returns the weighted sum of sim scores, from the sim scores (all need to be in range 0 to 1) of the provided
-    dataframe.
-    
-    Paramters:
-    feature_vector: Dataframe where the sim scores are stored
-    columns_to_be_ignored: Columns that should not be summed up as they do not store a similarity score
-        Default: ['l_id', 'r_id', 'label']
-    weight: the method that shall be used for weighting the similarity scores. Either None or 'density'
-        Default: None
-        Source: The idea with using density in order to weight the features for the sim scores aggregation comes
-                from Anna Primpeli's paper: "Unsupervised Bootstrapping of Active Learning for Entity Resolution", 2019
-    """
-    columns = [x for x in feature_vector.drop(columns=columns_to_be_ignored).columns.tolist() if 'sim' in x]
-    rel_columns = feature_vector.drop(columns=columns_to_be_ignored)[columns]
-    #logger.debug('Relevant columns are: {}'.format(rel_columns.columns))
-    rel_columns = rel_columns.replace(-1,np.nan)
-    if (weight is None):
-        rel_columns_sum = rel_columns.sum(axis=1,skipna=True)   # calculate sum of values for each row (pot. corr.)
-        rel_columns_mean = rel_columns_sum/len(rel_columns.columns) # calculate mean
-        
-    # idea with using density in order to weight the features for the sim scores aggregation
-    # from Anna Primpeli's paper: "Unsupervised Bootstrapping of Active Learning for Entity Resolution", 2019
-    if (weight == 'density'):
-        column_weights = []
-        for column in rel_columns:
-            nan_values = rel_columns[column].isna().sum()   # get amount of missing values in column
-            ratio = float(nan_values)/float(len(rel_columns[column]))
-            column_weights.append(1.0-ratio)
-            
-        #logger.debug(column_weights)
-        weighted_columns = rel_columns*column_weights
-        #logger.debug(weighted_columns.iloc[0])
-            
-        rel_columns_sum = weighted_columns.sum(axis=1, skipna=True)
-        rel_columns_mean = rel_columns_sum/len(rel_columns.columns)
-      
-    #rescale 
-    sum_weighted_similarity = np.interp(rel_columns_mean, (rel_columns_mean.min(), rel_columns_mean.max()), (0, +1))
-    #feature_vector['sum_weighted_sim'] = sum_weighted_similarity
-    return sum_weighted_similarity    
-    
-#%%
-            
-def attachWeightedSumOfSimScoresToFeatureVector(feature_dict, resulting_column_name='sum_weighted_sim', columns_to_be_ignored=['l_id', 'r_id', 'label'], weight='density'):
-    """
-    Returns the weighted sum of sim scores, from the sim scores (all need to be in range 0 to 1) of the provided
-    dataframe.
-    
-    Paramters:
-    feature_dict: Dictionary where all the Dataframes with the feature vectors containing the sim scores are stored
-    columns_to_be_ignored: Columns that should not be summed up as they do not store a similarity score
-        Default: ['l_id', 'r_id', 'label']
-    weight: the method that shall be used for weighting the similarity scores. Either None or 'density'
-        Default: None
-        Source: The idea with using density in order to weight the features for the sim scores aggregation comes
-                from Anna Primpeli's paper: "Unsupervised Bootstrapping of Active Learning for Entity Resolution", 2019
-                
-    This function does not return anything but calls the function returnWeightedSumOfSimScores() on each feature vector df
-    contained in the dictionary provided as argument and adds the resulted sum of the (weighted) sim scores to each feature
-    vector dataframe as column with the name of the argument resulting_column_name
-    """
-    for feature_df in feature_dict:
-        feature_dict[feature_df][resulting_column_name] = returnWeightedSumOfSimScores(feature_dict[feature_df], columns_to_be_ignored, weight)
-
-
-#%%
-
-def returnSortedDataFrame(feature_vector, label='label', ids=['l_id','r_id'], final_id='id', agg_sim='sum_weighted_sim'):
-    """
-    Sorts the sum of the (weighted) similarity scores and returns a dataframe containing label, ids, sim, and idx.
-    
-    Parameters:
-    feature_vector: Dataframe where the data is stored
-    label: String with the column name where the labels are stored
-        Default: 'label'
-    ids: When in the dataframe currently no ID for the pot. corr. are stored but rather two single ids for
-         each datasource then the two column names can be handed in a list as this argument and the two IDs
-         get combined to a single ID (which will be stored in the column with the name of the String from
-         final_id argument). If the dataframe already has an ID that identifies pot. corr. an empty list
-         can be handed to ids and the final_id argument needs to specify the correct name of the ID
-        Default: ['l_id','r_id']
-    final_id: Name of the single ID which is the combination of the IDs from the two datasources. If the
-              dataframe already has this final_id and does not need to be created based on the two single 
-              IDs then the ids argument needs to be set to an empty list and final_id needs to have the 
-              name of the column where the ID is stored. Otherwise final_id is just the name of the column
-              where the newly created ID will be stored.
-    agg_sim: Name of the column where the sum of the (weighted) similarity scores is stored.
-    """
-    if(len(ids)==2):    # in the dataframe an ID for each source is stored, hence we combine them to one
-        feature_vector[final_id] = feature_vector.apply(lambda row: '{}_{}'.format(row[ids[0]],row[ids[1]]),axis=1)
-    
-    sorted_data = list(zip(feature_vector[label], feature_vector[final_id], feature_vector[agg_sim], np.arange(feature_vector[final_id].size)))
-    random.Random(1).shuffle(sorted_data)
-    sorted_data.sort(key = lambda t: t[2])
-    sorted_label,sorted_ids,sorted_sim,sorted_idx = zip(*sorted_data)
-    df_sorted = pd.DataFrame({'label':sorted_label,'ids':sorted_ids,'sim':sorted_sim,'idx':sorted_idx})
-    return df_sorted
-
-
-#%%
-    
-def returnDictWithSortedDataFrames(feature_dict, label='label', ids=['l_id','r_id'], final_id='id', agg_sim='sum_weighted_sim'):
-    """
-    For each dataframe within the feature_dict argument this function sorts the sum of the (weighted)
-    similarity scores and returns a dataframe containing label, ids, sim, and idx. All resulting dataframes
-    are stored in a dictionary which is returned by this function!
-    
-    Parameters:
-    feature_vector: Dataframe where the data is stored
-    label: String with the column name where the labels are stored
-        Default: 'label'
-    ids: When in the dataframe currently no ID for the pot. corr. are stored but rather two single ids for
-         each datasource then the two column names can be handed in a list as this argument and the two IDs
-         get combined to a single ID (which will be stored in the column with the name of the String from
-         final_id argument). If the dataframe already has an ID that identifies pot. corr. an empty list
-         can be handed to ids and the final_id argument needs to specify the correct name of the ID
-        Default: ['l_id','r_id']
-    final_id: Name of the single ID which is the combination of the IDs from the two datasources. If the
-              dataframe already has this final_id and does not need to be created based on the two single 
-              IDs then the ids argument needs to be set to an empty list and final_id needs to have the 
-              name of the column where the ID is stored. Otherwise final_id is just the name of the column
-              where the newly created ID will be stored.
-    agg_sim: Name of the column where the sum of the (weighted) similarity scores is stored.
-    """
-    logger.info('Start calculating the sorted dataframes for each feature dataframe within feature_dict')
-    df_sorted_dict = {}
-    for feature_df in feature_dict:
-        df_sorted_dict.update({feature_df:returnSortedDataFrame(feature_dict[feature_df], label, ids, final_id, agg_sim)})
-    logger.info('Finished calculating the sorted dataframes for each feature dataframe within feature_dict')
-    return df_sorted_dict
     
 #%%
 
@@ -1046,3 +799,12 @@ def rescaleFeatureVectorsInDict(feature_dict, col_to_be_ignored=['l_id', 'r_id',
         feature_vector = feature_dict[feature_df]
         rescaleFeatureVectors(feature_vector, col_to_be_ignored)
     logger.info('All feature vectors within dictionary are now rescaled inplace')
+    
+#%%
+
+def removeElements(lst, k, less_than_k=False): 
+    counted = Counter(lst) 
+    if(not less_than_k):  
+        return [el for el in lst if counted[el] >= k]
+    else:
+        return [el for el in lst if counted[el] < k]
