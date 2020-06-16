@@ -24,6 +24,10 @@ from cvxopt import matrix, solvers
 def getSampleWeightsOfDomainAdaptation(X_source, X_target, weighting):
     if(weighting == 'lr_predict_proba'):
         sample_weight = iwe_BasedOnPredictProba(X_source, X_target,'lr')
+    elif(weighting == 'lrcv_predict_proba'):
+        sample_weight = iwe_BasedOnPredictProba(X_source, X_target,'lrcv')
+    elif(weighting == 'xgb_predict_proba'):
+        sample_weight = iwe_BasedOnPredictProba(X_source, X_target,'xgb')
     elif(weighting == 'lr_disc'):
         sample_weight = iwe_logistic_discrimination(X_source, X_target, l2=0.01)
     elif(weighting == 'ratio_gaussians'):
@@ -59,6 +63,8 @@ def iwe_BasedOnPredictProba(X,Z,classifier='lr'):
         source data (N samples by D features)
     Z : array
         target data (M samples by D features)
+    Classifier : String (either 'lr','lrcv', or 'xgb')
+    
     Returns
     -------
     array
@@ -85,7 +91,7 @@ def iwe_BasedOnPredictProba(X,Z,classifier='lr'):
     elif(classifier=='xgb'):
         clf = xgb.XGBClassifier(random_state=42,objective="binary:logistic")
     else:
-        raise ValueError('classifier not defined')
+        raise ValueError('Classifier not defined')
     # reload source dataset
 
     # calculate predict_proba (that will be used as sample weights)
