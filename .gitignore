@@ -156,3 +156,11 @@
 *.png
 *.jpg
 *.pdf
+
+#files that shall not be excluded 
+!**/TL_Experiments_Home_final.ipynb
+!./results/tl/home/*.html
+!**/TL_Experiments_Authors_final.ipynb
+!./results/tl/authors/*.html
+!**/TL_Experiments_Books_final.ipynb
+!./results/tl/books/*.html
