@@ -26,7 +26,7 @@ import support_utils as sup
 
 #%%  
 
-def atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,feature,bootstrap_clf,
+def atlx(candsets,candsets_train,candsets_test,source_name,target_name,feature,bootstrap_clf,
            query_strategy,quota,warm_start,n_bootstrapped_samples=2,weighting=None,disagreement='vote',n=5):
     """
     query_strategy: 
@@ -40,6 +40,7 @@ def atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,feature
     model_pred_prob_start, model_feature_import_start, model_depth_tree_start = [],[],[]
     model_pred_prob_end, model_feature_import_end, model_depth_tree_end = [],[],[]
     runtimes = []
+    share_noise_labeled_set_pos_lst, share_noise_labeled_set_neg_lst = [],[]
     #n_labeled = 0
     
     X_source = candsets[source_name][feature].to_numpy()
@@ -68,9 +69,12 @@ def atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,feature
     for i in range(n):
         print('{}. Run of {}'.format(i+1,n))
         
-        train_ds, fully_labeled_trn_ds = initializeATLPool(X_source, y_source, X_target_train, y_target_train, 
-                                                           sample_weight, bootstrap_clf, n_labeled)
+        train_ds, fully_labeled_trn_ds, n_labeled_, share_noise_labeled_set_pos, share_noise_labeled_set_neg = initializeATLPool(X_source, y_source, X_target_train, 
+                                                                                                                     y_target_train, sample_weight, 
+                                                                                                                     bootstrap_clf, n_labeled)
         
+        share_noise_labeled_set_pos_lst.append(share_noise_labeled_set_pos)
+        share_noise_labeled_set_neg_lst.append(share_noise_labeled_set_neg)
         # if quota -1 it means it is not a fixed amount
         # create the quota which is the amount of all instances 
         # in the training pool minus the amount of already labeled ones
@@ -111,6 +115,8 @@ def atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,feature
     if(weighting is None):
         # append weighting strategy to query_strategy name to be able to distinguish 
         d = {key:{'rf':{query_strategy:{'no_weighting':{'quota':quota,'n_runs':n,'n_init_labeled':n_labeled,
+                                                        'share_noise_labeled_set_pos':share_noise_labeled_set_pos, 
+                                                        'share_noise_labeled_set_neg':share_noise_labeled_set_neg,
                                                                   'share_of_corrected_labels':share_of_corrected_labels,
                                                                   'model_params':model_.get_params(),'avg_runtime':runt,
                                                                   'training_accuracy_scores':training_accuracy_scores,
@@ -128,6 +134,8 @@ def atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,feature
                                                                  'sample_weights':sample_weight}}}}}
     else:
         d = {key:{'rf':{query_strategy:{weighting:{'quota':quota,'n_runs':n,'n_init_labeled':n_labeled,
+                                                   'share_noise_labeled_set_pos':share_noise_labeled_set_pos, 
+                                                        'share_noise_labeled_set_neg':share_noise_labeled_set_neg,
                                                              'share_of_corrected_labels':share_of_corrected_labels,
                                                              'model_params':model_.get_params(),'avg_runtime':runt,
                                                              'training_accuracy_scores':training_accuracy_scores,
@@ -175,7 +183,59 @@ def initializeATLPool(X_source, y_source, X_target_train, y_target_train, sample
         
     predict_proba_target = clf.predict_proba(X_target_train)
     
-    if(n_labeled==2):
+    # as the classes shall be balanced everything smaller than 4 will be assigned 1 instance per class, so n_labeled == 2
+    k = 0
+    if(n_labeled>=4):
+        neg_proba = predict_proba_target[:,0]
+        pos_proba = predict_proba_target[:,1]
+        
+        # balance the class
+        n_per_class = int(n_labeled/2)
+        # check whether 
+        if (((pos_proba[np.argpartition(pos_proba, -n_per_class)[-n_per_class:]]>0.9).all()==True)\
+           and ((neg_proba[np.argpartition(neg_proba, -n_per_class)[-n_per_class:]]>0.9).all()==True)):
+            k = n_per_class
+            pos_idx = np.argpartition(pos_proba, -k)[-k:]
+            neg_idx = np.argpartition(neg_proba, -k)[-k:]
+        else:
+            # get the amount of class positive with pred proba > 0.9
+            k = np.argwhere(pos_proba>0.9).shape[0]
+            # check whether the k largesst class negatives have pred proba > 0.9, if yes take them
+            if(k==0):
+                pass
+            elif ((neg_proba[np.argpartition(neg_proba, -k)[-k:]]>0.9).all()==True):
+                pos_idx = np.argpartition(pos_proba, -k)[-k:]
+                neg_idx = np.argpartition(neg_proba, -k)[-k:]  
+            else:
+                # if not reduce to the amount of k to the amount of largest neg with pred proba > 0.9
+                k = np.argwhere(neg_proba>0.9).shape[0]
+                # take as many (k) pos as neg from pred proba
+                pos_idx = np.argpartition(pos_proba, -k)[-k:]
+                neg_idx = np.argpartition(neg_proba, -k)[-k:]
+        
+        if(k!=0):
+            print('n_labeled max, as specified upfront is {}'.format(n_labeled))
+            n_labeled = k*2 # if n_labeled was not even now it is ensured
+            print('The actual amount of instances with a predict proba higher than 90% is {}'.format(n_labeled))
+            
+            X_init_neg = X_target_train[neg_idx]
+            y_init_neg_true = y_target_train[neg_idx]
+            X_init_pos = X_target_train[pos_idx]
+            y_init_pos_true = y_target_train[pos_idx]
+            
+            X_init_labeled = np.vstack([X_init_pos,X_init_neg])
+            y_init_labeled = np.append(np.ones(k),np.zeros(k))
+            
+            y_init_labeled_true = np.append(y_init_pos_true,y_init_neg_true)
+            # check whether noise in labeled set
+            share_noise_labeled_set_pos = (k-(np.sum(y_init_pos_true)))/k
+            share_noise_labeled_set_neg = ((np.sum(y_init_neg_true))/k)
+        else:
+            pass
+
+    
+    if(k==0):
+        n_labeled = 2 
         # get the target instance with the highest predict_proba for neg. class
         neg_idx = np.argmax(predict_proba_target[:,0])
         X_init_neg = X_target_train[neg_idx]
@@ -189,10 +249,12 @@ def initializeATLPool(X_source, y_source, X_target_train, y_target_train, sample
         y_init_labeled = np.array([1,0])
         
         y_init_labeled_true = np.append(y_init_pos_true,y_init_neg_true)
-    else:
-        raise ValueError('Currently only boostrapping with two instances implemented!')
-    #n_labeled = 2
-    # delete the two target instances from the training set.
+        
+        share_noise_labeled_set_pos = 1 - y_init_pos_true
+        share_noise_labeled_set_neg = y_init_neg_true
+        
+
+    # delete the two target instances added to the labeled set from the training set.
     X_target_train = np.delete(X_target_train,[pos_idx,neg_idx],axis=0)
     y_target_train = np.delete(y_target_train,[pos_idx,neg_idx])
     
@@ -224,7 +286,7 @@ def initializeATLPool(X_source, y_source, X_target_train, y_target_train, sample
     
     # here we have the fully labeled training set 
     fully_labeled_trn_ds = Dataset(X=X_train,y=y_train_true)
-    return train_ds, fully_labeled_trn_ds
+    return train_ds, fully_labeled_trn_ds, n_labeled, share_noise_labeled_set_pos, share_noise_labeled_set_neg
 
 
 #%%
@@ -237,8 +299,24 @@ def getQueryStrategy(query_strategy, train_ds, disagreement, estimator_name=None
                              Use svc instead or change disagreement to vote!')
         qs = le.SourceQueryByCommittee_(train_ds, models=[la.RandomForest_(),la.DecisionTree_(),
                                                    la.LogisticRegression_(solver='liblinear',max_iter=1000),
-                                                   la.LinearSVC_()],
-                    disagreement=disagreement)
+                                                   la.LinearSVC_()],disagreement=disagreement)
+        # committee of five 
+    elif query_strategy == 'lr_svc_rf_dt_xgb':
+        qs = le.SourceQueryByCommittee_(train_ds, models=[la.LogisticRegression_(solver='liblinear',max_iter=1000),
+                                                la.SVC_(kernel='linear',probability=True),la.RandomForest_(),la.DecisionTree_(),
+                                                la.XGBClassifier_(objective="binary:logistic")],disagreement=disagreement)
+    elif query_strategy == 'lr_lsvc_rf_dt_xgb':
+        if disagreement == 'kl_divergence':
+            raise ValueError('when using kl_divergence lsvc cannot be in the committee as linearSVC does not provide predict_proba().\
+                             Use svc instead or change disagreement to vote!')
+        qs = le.SourceQueryByCommittee_(train_ds, models=[la.RandomForest_(),la.DecisionTree_(),
+                                                   la.LogisticRegression_(solver='liblinear',max_iter=1000),
+                                                   la.LinearSVC_(),la.XGBClassifier_(objective="binary:logistic")],disagreement=disagreement)
+    elif query_strategy == 'lr_svc_dt_xgb':
+        qs = le.SourceQueryByCommittee_(train_ds, models=[la.LogisticRegression_(solver='liblinear',max_iter=1000),
+                                                la.SVC_(kernel='linear',probability=True),la.DecisionTree_(),
+                                                la.XGBClassifier_(objective="binary:logistic")],
+            disagreement=disagreement)
     elif query_strategy == 'uncertainty':
         qs = UncertaintySampling(train_ds, method='lc', model=la.LogisticRegression_())
     elif query_strategy == 'random':
@@ -249,17 +327,6 @@ def getQueryStrategy(query_strategy, train_ds, disagreement, estimator_name=None
                                                 la.LogisticRegression_(solver='liblinear',max_iter=1000),
                                                 la.SVC_(kernel='linear',probability=True)],
                     disagreement=disagreement)
-    elif query_strategy == 'lr_svc_dt_xgb':
-        qs = le.SourceQueryByCommittee_(train_ds, models=[la.LogisticRegression_(solver='liblinear',max_iter=1000),
-                                                la.SVC_(kernel='linear',probability=True),la.DecisionTree_(),
-                                                la.XGBClassifier_(objective="binary:logistic")],
-            disagreement=disagreement)
-    # committee of five 
-    elif query_strategy == 'lr_svc_dt_xgb_rf':
-        qs = le.SourceQueryByCommittee_(train_ds, models=[la.LogisticRegression_(solver='liblinear',max_iter=1000),
-                                                la.SVC_(kernel='linear',probability=True),la.DecisionTree_(),
-                                                la.XGBClassifier_(objective="binary:logistic"),la.RandomForest_()],
-            disagreement=disagreement)
     elif query_strategy == 'lr_lsvc_dt_gpc':
         if disagreement == 'kl_divergence':
             raise ValueError('when using kl_divergence lsvc cannot be in the committee as linearSVC does not provide predict_proba().\
@@ -413,7 +480,7 @@ def run_weighted_atl(train_ds,test_ds,lbr,model,qs,quota):
 
 #%%
     
-def atl_rf_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstrap_clf,
+def atlx_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstrap_clf,
                query_strategies,quota,warm_start,n_bootstrapped_samples=2,weighting=[None],
                disagreement='vote',n=5,switch_roles=False):
     
@@ -432,7 +499,7 @@ def atl_rf_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstr
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                                           feature,bootstrap_clf,query_strategies,quota,warm_start,
                                                           n_bootstrapped_samples,weighting,disagreement,n)
 
@@ -443,7 +510,7 @@ def atl_rf_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstr
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                                           feature,bootstrap_clf,query_strategies,quota,warm_start,
                                                           n_bootstrapped_samples,weighting,disagreement,n)
 
@@ -457,7 +524,7 @@ def atl_rf_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstr
             
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
             
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                                           feature,bootstrap_clf,query_strategies,quota,warm_start,
                                                           n_bootstrapped_samples,weighting,disagreement,n)
 
@@ -468,7 +535,7 @@ def atl_rf_all(candsets,candsets_train,candsets_test,dense_features_dict,bootstr
 
 #%%
     
-def atl_rf_combos(candsets,candsets_train,candsets_test,combinations,dense_features_dict,bootstrap_clf,
+def atlx_combos(candsets,candsets_train,candsets_test,combinations,dense_features_dict,bootstrap_clf,
                   query_strategies,quota,warm_start,n_bootstrapped_samples=2,weighting=[None],disagreement='vote',n=5,switch_roles=False):
     d = {} 
     if(switch_roles):
@@ -480,7 +547,7 @@ def atl_rf_combos(candsets,candsets_train,candsets_test,combinations,dense_featu
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                  feature,bootstrap_clf,query_strategies,quota,warm_start,
                                  n_bootstrapped_samples,weighting,disagreement,n)
             d.update(temp)
@@ -490,7 +557,7 @@ def atl_rf_combos(candsets,candsets_train,candsets_test,combinations,dense_featu
         
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
         
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                  feature,bootstrap_clf,query_strategies,quota,warm_start,
                                  n_bootstrapped_samples,weighting,disagreement,n)
 
@@ -504,7 +571,7 @@ def atl_rf_combos(candsets,candsets_train,candsets_test,combinations,dense_featu
             
             print('Start with ATL using different settings for source {} and target {}'.format(source_name,target_name))
             
-            temp = atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
+            temp = atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,
                                  feature,bootstrap_clf,query_strategies,quota,warm_start,
                                  n_bootstrapped_samples,weighting,disagreement,n)
 
@@ -514,7 +581,7 @@ def atl_rf_combos(candsets,candsets_train,candsets_test,combinations,dense_featu
 
 #%%
     
-def atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,features,bootstrap_clf,
+def atlx_single(candsets,candsets_train,candsets_test,source_name,target_name,features,bootstrap_clf,
                   query_strategies,quota,warm_start,n_bootstrapped_samples=2,weighting=[None],disagreement='vote',n=5):
     """
     Run The final Active Transfer Learning Method with RF (expanding if warm_start=True) and query_strategies!
@@ -530,7 +597,7 @@ def atl_rf_single(candsets,candsets_train,candsets_test,source_name,target_name,
             print('Start with Query Strategy: {}'.format(qs))
             for weight in weighting:
                 print('Start with Weighting Strategy: {}'.format(weight))
-                temp = atl_rf(candsets,candsets_train,candsets_test,source_name,target_name,features,
+                temp = atlx(candsets,candsets_train,candsets_test,source_name,target_name,features,
                               bootstrap_clf,qs,quota,warm_start,n_bootstrapped_samples,weight,disagreement,n)
                 if(key in d):
                     if(est in d[key]):

@@ -485,6 +485,21 @@ class UnsupervisedPoolDataset(Dataset):
 #%%
         
 class QueryByCommitteeUBoot_(QueryByCommittee):
+    
+    def teach_students(self):
+        """
+        Train each model (student) with the labeled data using bootstrap
+        aggregating (bagging).
+        """
+        dataset = self.dataset
+        for student in self.students:
+            bag = self._labeled_uniform_sample(int(dataset.len_labeled()))
+            while bag.get_num_of_labels() != dataset.get_num_of_labels():
+                bag = self._labeled_uniform_sample(int(dataset.len_labeled()))
+                # comment out those warnings 
+                #LOGGER.warning('There is student receiving only one label,'
+                #               're-sample the bag.')
+            student.train(bag)
 
     @inherit_docstring_from(QueryStrategy)
     def make_query(self):

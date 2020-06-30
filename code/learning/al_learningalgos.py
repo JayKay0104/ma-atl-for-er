@@ -25,7 +25,7 @@ from libact.base.interfaces import ContinuousModel
 def getLearningModel(estimator_name):
     print('Initialize Learning Model')
     if estimator_name == 'rf': 
-        model = RandomForest_(random_state=42,n_estimators=10)
+        model = RandomForest_(random_state=42)
     elif estimator_name =='lr': 
         model = LogisticRegression_(random_state=42,solver='liblinear', max_iter=1000)
     elif estimator_name == 'dt':
@@ -55,7 +55,7 @@ class RandomForest_(ProbabilisticModel):
 
     def train(self, dataset, no_weights=False, *args, **kwargs):
         if(no_weights):
-            return self.model.fit(*(dataset.format_sklearn(no_weights) + args), **kwargs)
+            return self.model.fit(*(dataset.format_sklearn(no_weights=True) + args), **kwargs)
         else:
             return self.model.fit(*(dataset.format_sklearn() + args), **kwargs)
 
@@ -73,6 +73,9 @@ class RandomForest_(ProbabilisticModel):
     
     def get_params(self):
         return self.model.get_params()
+    
+    def get_trees_max_depth(self):
+        return [est.get_depth() for est in self.model.estimators_]
     
 class LogisticRegression_(ProbabilisticModel):
 
@@ -140,6 +143,9 @@ class DecisionTree_(ProbabilisticModel):
     
     def get_params(self):
         return self.model.get_params()
+    
+    def get_tree_max_depth(self):
+        return self.model.tree_.max_depth
     
     
 class LinearSVC_(ContinuousModel):

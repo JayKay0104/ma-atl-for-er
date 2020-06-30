@@ -28,9 +28,10 @@ def group(lst, n):
 
 #%%
     
-def returnDFWithSuper(candsets_super_results,number_of_estimators,filename=None):
+def returnDFWithSuper(candsets_super_results,filename=None):
     innerkeys =  [innerkey for k,innerdict in candsets_super_results.items() for innerkey, values in innerdict.items()]
-    values = [round(value,3) for k,innerdict in candsets_super_results.items() for innerkey, value in innerdict.items()]
+    values = [round(value['f1'],3) for k,innerdict in candsets_super_results.items() for innerkey, value in innerdict.items()]
+    number_of_estimators = len(set(innerkeys))
     df_super = pd.DataFrame(list(group(values,number_of_estimators)),index=candsets_super_results.keys(),columns=innerkeys[:number_of_estimators])
     ###########################################################################
     # style functions as nested functions
@@ -60,8 +61,11 @@ def returnDFWithSuper(candsets_super_results,number_of_estimators,filename=None)
 #%%
     
 def returnDFWithUnsuper(candsets_unsuper_results,filename=None):
-    unsuper_ser = pd.Series(candsets_unsuper_results)
-    df_unsuper = pd.DataFrame(unsuper_ser,columns=['Elbow Results'])
+    f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+    elb = [round(value['elbow_threshold'],3) for k,value in candsets_unsuper_results.items()]
+    data = {'F1 score':f1,'Elbow Threshold':elb}
+    #unsuper_ser = pd.Series(candsets_unsuper_results)
+    df_unsuper = pd.DataFrame(data,index=candsets_unsuper_results.keys())
     ###########################################################################
     # style functions as nested functions
     # function for pandas styler. Highlight all max values
@@ -80,7 +84,7 @@ def returnDFWithUnsuper(candsets_unsuper_results,filename=None):
             ('vertical-align','top'),
             ('text-align','center')]}]
     html = (df_unsuper.style.\
-            apply(highlight_max,axis=0)).set_table_styles(styles).set_precision(3)
+            apply(highlight_max,axis=0,subset=pd.IndexSlice['F1 score'])).set_table_styles(styles).set_precision(3)
     display(html)
     if filename is not None:
         with open('{}.html'.format(filename), 'w') as f:
@@ -221,7 +225,7 @@ def plotATLResults(atl_results,source,target,quota,candsets,candsets_super_resul
                                     label='{}: AL init. {} labeled & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
     else:
@@ -318,7 +322,7 @@ def plotATLResults(atl_results,source,target,quota,candsets,candsets_super_resul
                                     label='{}: AL init. {} labeled & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target_name][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
         
@@ -512,7 +516,7 @@ def plotAWTLResults(awtl_results,source,target,quota,candsets,candsets_super_res
                                     label='{}: AL init. {} labeled & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target_name][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
     else:
@@ -645,7 +649,7 @@ def plotAWTLResults(awtl_results,source,target,quota,candsets,candsets_super_res
                                     label='{}: AL init. {} labeled & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target_name][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
         
@@ -845,7 +849,7 @@ def plotATLRFALUnsupResults(atl_rf_results,source,target,quota,candsets,candsets
                                     label='{}: AL_RF {}: init. {} labeled (UnsupBoot) & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,warm_start,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
     else:
@@ -978,7 +982,7 @@ def plotATLRFALUnsupResults(atl_rf_results,source,target,quota,candsets,candsets
                                     label='{}: AL_RF {}: init. {} labeled (UnsupBoot) & QS {}. Final Iter. F1: {:.2f} σ {:.2f}'.format(clf,warm_start,n_init_labeled,qs,y_al_results[max_quota-1],std_al_results[max_quota-1]))
             # benchmark plots
             # supervised
-            f1_target_bm = candsets_super_results[target][clf_old]
+            f1_target_bm = candsets_super_results[target_name][clf_old]['f1']
             y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
             ax.plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
         
@@ -1073,7 +1077,7 @@ def createDFwithAlandATLResults(al_results,atl_results,candsets_super_results,fi
     keys = [('_'.join(k.split('_')[:2]),'_'.join(k.split('_')[2:])) for k in d]
     df = pd.DataFrame(data, index=pd.MultiIndex.from_tuples(keys,names=['Source','Target']), columns=pd.MultiIndex.from_tuples(columns_list,names=['Estimators','QS','Iteration','Results']))
     
-    values = [round(candsets_super_results[key][clf],3) for key in candsets_super_results.keys() for clf in clfs]
+    values = [round(candsets_super_results[key][clf]['f1']['f1'],3) for key in candsets_super_results.keys() for clf in clfs]
     df_super = pd.DataFrame(list(group(values,len(clfs))),index=candsets_super_results.keys(),columns=clfs)
     
     if('logreg' in df_super.columns):
@@ -1155,8 +1159,9 @@ def createDFwithAlandATLResults(al_results,atl_results,candsets_super_results,fi
             apply(highlight_atl_worse_than_al,axis=1).\
             apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_al_atl])).set_table_styles(styles).set_precision(3)
     display(html)
-    with open('{}.html'.format(filename), 'w') as f:
-        f.write(html.render())
+    if(filename is not None):
+        with open('{}.html'.format(filename), 'w') as f:
+            f.write(html.render())
     return df
 
 #%%
@@ -1241,7 +1246,7 @@ def createDFwithAlandATLResultsUpToMaxQuota(al_results,atl_results,candsets_supe
     keys = [('_'.join(k.split('_')[:2]),'_'.join(k.split('_')[2:])) for k in d]
     df = pd.DataFrame(data, index=pd.MultiIndex.from_tuples(keys,names=['Source','Target']), columns=pd.MultiIndex.from_tuples(columns_list,names=['Estimators','QS','Iteration','Results']))
     
-    values = [round(candsets_super_results[key][clf],3) for key in candsets_super_results.keys() for clf in clfs]
+    values = [round(candsets_super_results[key][clf]['f1'],3) for key in candsets_super_results.keys() for clf in clfs]
     df_super = pd.DataFrame(list(group(values,len(clfs))),index=candsets_super_results.keys(),columns=clfs)
     
     if('logreg' in df_super.columns):
@@ -1437,7 +1442,7 @@ def createDFwithAlandATLResultsMoreItersUpToMaxQuota(al_results,atl_results,cand
     keys = [('_'.join(k.split('_')[:2]),'_'.join(k.split('_')[2:])) for k in d]
     df = pd.DataFrame(data, index=pd.MultiIndex.from_tuples(keys,names=['Source','Target']), columns=pd.MultiIndex.from_tuples(columns_list,names=['Estimators','QS','Iteration','Results']))
     
-    values = [round(candsets_super_results[key][clf],3) for key in candsets_super_results.keys() for clf in clfs]
+    values = [round(candsets_super_results[key][clf]['f1'],3) for key in candsets_super_results.keys() for clf in clfs]
     df_super = pd.DataFrame(list(group(values,len(clfs))),index=candsets_super_results.keys(),columns=clfs)
     
     if('logreg' in df_super.columns):
@@ -1541,6 +1546,225 @@ def createDFwithAlandATLResultsMoreItersUpToMaxQuota(al_results,atl_results,cand
     with open('{}.html'.format(filename), 'w') as f:
         f.write(html.render())
     return df
+
+
+#%%
+    
+def createDFwithAlUnsupandATLRFResultsMoreItersUpToMaxQuota(atl_rf_results,al_unsup_results,selected_weighting,candsets_super_results,selected_qs=None,max_quota=100,filename=None):
+    """
+    This function creates a DataFrame with the results of each experiment. Per estimator the TL_avg (Transfer Learning Avg Result),
+    Tar_max (Target max result when trained on 500 target instances), Tar_exc (Amount of Target Instances needed to exceed TL results),
+    when trained on all features and dense features, are reported. Hence, amount of estimators*2*3 columns + 1 for unsupervised results
+    of target are in the resulting DataFrame. It also stores a html file where important information is highlighted in the DataFrame.
+    
+    tl_results: Dictionary containting the results of the Transfer Learning experiements (as output by returnF1TLResultsFromDictWithPlot())
+    candsets_unsuper_results: Dictionary containing the unsupervised results which act as benchmark (in the form of {'ban_half':0.732,'bx_half': 0.626,...})
+    number_of_estimators: Integer indicating the amount of different estimators that were used for the TL experiments
+    filename: Name of the html file that gets saved and contains the DataFrame with important information highlighted.
+        Default: 'tl_results'
+    """
+    d = atl_rf_results
+    
+    mean_2iter,mean_10iter,mean_20iter,mean_30iter,mean_50iter,mean_100iter = [],[],[],[],[],[]
+    
+    al_mean_2iter,al_mean_10iter,al_mean_20iter,al_mean_30iter,al_mean_50iter,al_mean_100iter = [],[],[],[],[],[]
+    qss,column_list = [],[]
+    
+    keys = []
+    for key in d:       
+        if(not isinstance(key,tuple)):
+            target = '_'.join(key.split('_')[2:])
+            keys.append(('_'.join(key.split('_')[:2]),'_'.join(key.split('_')[2:])))
+        else:
+            target = key[1]
+            keys.append(key)
+        clf = 'rf'
+        if(selected_qs is None):
+            for qs in d[key][clf]:
+                qss.append(qs)
+                al_test_f1_scores = al_unsup_results[target][clf][qs]['test_f1_scores']
+                #n_init_labeled = al_unsup_results[target][clf][qs]['n_init_labeled']
+                al_mean_test_f1_scores = np.mean(al_test_f1_scores,axis=0)
+                al_mean_2iter.append(round(al_mean_test_f1_scores[1],3))
+                column_list.append((clf,qs,'2nd','ATL'))
+                column_list.append((clf,qs,'2nd','AL'))
+                al_mean_10iter.append(round(al_mean_test_f1_scores[9],3))
+                column_list.append((clf,qs,'10th','ATL'))
+                column_list.append((clf,qs,'10th','AL'))
+                al_mean_20iter.append(round(al_mean_test_f1_scores[19],3))
+                column_list.append((clf,qs,'20th','ATL'))
+                column_list.append((clf,qs,'20th','AL'))
+                al_mean_30iter.append(round(al_mean_test_f1_scores[29],3))
+                column_list.append((clf,qs,'30th','ATL'))
+                column_list.append((clf,qs,'30th','AL'))
+                al_mean_50iter.append(round(al_mean_test_f1_scores[49],3))
+                column_list.append((clf,qs,'50th','ATL'))
+                column_list.append((clf,qs,'50th','AL'))
+                al_mean_100iter.append(round(al_mean_test_f1_scores[99],3))
+                column_list.append((clf,qs,'100th','ATL'))
+                column_list.append((clf,qs,'100th','AL'))
+                mean_2iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[1],3))
+                mean_10iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[9],3))
+                mean_20iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[19],3))
+                mean_30iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[29],3))
+                mean_50iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[49],3))
+                mean_100iter.append(round(np.mean(d[key][clf][qs][selected_weighting]['test_f1_scores'],axis=0)[99],3))
+        else:
+            qss.append(selected_qs)
+            al_test_f1_scores = al_unsup_results[target][clf][selected_qs]['test_f1_scores']
+            #n_init_labeled = al_unsup_results[target][clf][qs]['n_init_labeled']
+            al_mean_test_f1_scores = np.mean(al_test_f1_scores,axis=0)
+            al_mean_2iter.append(round(al_mean_test_f1_scores[1],3))
+            column_list.append((clf,selected_qs,'2nd','ATL'))
+            column_list.append((clf,selected_qs,'2nd','AL'))
+            al_mean_10iter.append(round(al_mean_test_f1_scores[9],3))
+            column_list.append((clf,selected_qs,'10th','ATL'))
+            column_list.append((clf,selected_qs,'10th','AL'))
+            al_mean_20iter.append(round(al_mean_test_f1_scores[19],3))
+            column_list.append((clf,selected_qs,'20th','ATL'))
+            column_list.append((clf,selected_qs,'20th','AL'))
+            al_mean_30iter.append(round(al_mean_test_f1_scores[29],3))
+            column_list.append((clf,selected_qs,'30th','ATL'))
+            column_list.append((clf,selected_qs,'30th','AL'))
+            al_mean_50iter.append(round(al_mean_test_f1_scores[49],3))
+            column_list.append((clf,selected_qs,'50th','ATL'))
+            column_list.append((clf,selected_qs,'50th','AL'))
+            al_mean_100iter.append(round(al_mean_test_f1_scores[99],3))
+            column_list.append((clf,selected_qs,'100th','ATL'))
+            column_list.append((clf,selected_qs,'100th','AL'))
+            mean_2iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[1],3))
+            mean_10iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[9],3))
+            mean_20iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[19],3))
+            mean_30iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[29],3))
+            mean_50iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[49],3))
+            mean_100iter.append(round(np.mean(d[key][clf][selected_qs][selected_weighting]['test_f1_scores'],axis=0)[99],3))
+                
+
+    al_atl_mean_2iter = list(zip(mean_2iter,al_mean_2iter))
+    al_atl_mean_10iter = list(zip(mean_10iter,al_mean_10iter))
+    al_atl_mean_20iter = list(zip(mean_20iter,al_mean_20iter))
+    al_atl_mean_30iter = list(zip(mean_30iter,al_mean_30iter))
+    al_atl_mean_50iter = list(zip(mean_50iter,al_mean_50iter))
+    al_atl_mean_100iter = list(zip(mean_100iter,al_mean_100iter))
+
+    
+    #clf_org = 'rf'
+    #clfs = list(set(clfs))
+    # get the amount of different query strategies
+    number_of_qs = len(list(set(qss)))
+    # ensure that the order is maintained 
+    qss = qss[:number_of_qs]
+    n = number_of_qs*6*2 #number_of_estimators*number_of_qs*Iterations (6) *AL Results and ATL Results (2)
+    data = list(group(list(itertools.chain.from_iterable(list(itertools.chain.from_iterable(list(zip(al_atl_mean_2iter,al_atl_mean_10iter,al_atl_mean_20iter,al_atl_mean_30iter,al_atl_mean_50iter,al_atl_mean_100iter)))))),n))
+    col_tuple_list = list(group(column_list,n))
+    single_col_tuple = list(set(col_tuple_list))
+    columns_list = [item for t in single_col_tuple for item in t]
+
+    df = pd.DataFrame(data, index=pd.MultiIndex.from_tuples(keys,names=['Source','Target']), columns=pd.MultiIndex.from_tuples(columns_list,names=['Estimator','QS','Iteration','Results']))
+    
+    values = [round(candsets_super_results[key]['randforest']['f1'],3) for key in candsets_super_results.keys()]
+    df_super = pd.DataFrame(values,index=candsets_super_results.keys(),columns=[clf])
+    
+    #columns_before = list(df_super.columns)
+    #print(columns_before)
+    if(number_of_qs==2):
+        df_super = pd.concat([df_super,df_super],axis=1)
+        df_super = df_super[[clf]]
+
+    #print(qss)
+    df_super.columns = pd.MultiIndex.from_product([[clf],qss,['all'],['Tar_sup']],names=['Estimator','QS','Iterations','Results'])
+    df = pd.merge(df,df_super,how='left',left_on='Target',right_index=True)
+    df = df.reindex(columns=[clf],level=0)
+    df = df.reindex(columns=qss,level=1)
+    df = df.reindex(columns=['2nd','10th','20th','30th','50th','100th','all'],level=2)
+    #col_al_atl = [col for col in df.columns if col[3]=='ATL' or col[3]=='AL']
+    col_tar_sup = [col for col in df.columns if col[3]=='Tar_sup']
+    col_tar_sup_format = {col:lambda x: '<font color=\'#000000\'><b>{}</b></font>'.format(x) for col in col_tar_sup}
+                                               
+#    ###########################################################################################
+#    # style functions as nested functions
+#    # function for pandas styler. Highlight all max values of TL_avg
+#    def highlight_max(data):
+#        attr_max = 'background-color: #FBFF75'
+#        if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+#            is_max = data == data.max()
+#            return [attr_max if v else '' for v in is_max]
+#        else: 
+#            is_max = data.groupby(['AL','ATL']).transform('max') == data
+#            return pd.DataFrame(np.where(is_max, attr_max, ''),
+#                                    index=data.index, columns=data.columns)
+#    # another function for pandas style      
+    def highlight_atl_exceed_bm(row):
+        # initiate list with the size of the row (length 32) with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+        ser = (row[:,:,:,'ATL'].reset_index(drop=True)>=row[:,:,'all','Tar_sup'].repeat(6).reset_index(drop=True))
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+        # if i==1 then pos 6 (i+k). K has to be incremented by 2 for each execution of the loop
+        k = 0
+        for i, b in enumerate(ser):
+            if(i!=0 and i%6==0):
+                k += 1
+            if(b):
+                lst[k] = 'background-color: #FBFF75'
+            k += 2
+        return lst
+    
+    # another function for pandas style      
+    def highlight_al_worse_than_atl(row):
+        # initiate list with the size of the row (length 32) with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+        ser = (row[:,:,:,'ATL']>row[:,:,:,'AL'])
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+        # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+        k = 0
+        for i, b in enumerate(ser):
+            if(i!=0 and i%6==0):
+                k += 1
+            if(b):
+                lst[k] = 'color:#000000;background-color:rgba(51, 204, 51, .1);'
+            k += 2
+        return lst
+#    # another function for pandas style      
+    def highlight_atl_worse_than_al(row):
+        # initiate list with the size of the row (length 32) with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+        ser = (row[:,:,:,'ATL']<row[:,:,:,'AL'])
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+        # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+        k = 1
+        for i, b in enumerate(ser):
+            if(i!=0 and i%6==0):
+                k += 1
+            if(b):
+                lst[k] = 'background-color: #FF7070'
+            k += 2
+        return lst
+#    ############################################################################################
+    # specify the styles for the html output
+    styles=[{'selector': 'th','props': [
+            ('border-style', 'solid'),
+            ('border-color', '#D3D3D3'),
+            ('vertical-align','top'),
+            ('text-align','center')]}]
+   
+    html = (df.style.\
+            apply(highlight_al_worse_than_atl,axis=1).\
+            apply(highlight_atl_worse_than_al,axis=1).\
+            #apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_al_atl]))
+            apply(highlight_atl_exceed_bm,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_sup_format)
+    print(f'Weighting: {selected_weighting} and Query Strategy: {selected_qs}')
+    display(html)
+    if(filename is not None):
+        with open('{}.html'.format(filename), 'w') as f:
+            f.write(html.render())
+            
+    return df
+
+
+
 
 #%%
     
@@ -1697,7 +1921,7 @@ def createDFwithAlandATLResultsOnlyOneEstimator(al_results,atl_results,estimator
     else:
         clf_old = clf
         
-    values = [round(candsets_super_results[key][clf_old],3) for key in candsets_super_results.keys()]
+    values = [round(candsets_super_results[key][clf_old]['f1'],3) for key in candsets_super_results.keys()]
     df_super = pd.DataFrame(values,index=candsets_super_results.keys(),columns=clf)
     
     if('logreg' in df_super.columns):
@@ -1863,7 +2087,7 @@ def createDFwithAlandATLResultsUpToMaxQuotaOnlyOneEstimator(al_results,atl_resul
     else:
         clf_old = clf
         
-    values = [round(candsets_super_results[key][clf_old],3) for key in candsets_super_results.keys()]
+    values = [round(candsets_super_results[key][clf_old]['f1'],3) for key in candsets_super_results.keys()]
     df_super = pd.DataFrame(values,index=candsets_super_results.keys(),columns=clf)
     
     if('logreg' in df_super.columns):
@@ -2059,7 +2283,7 @@ def createResultsDFOneEstimator(al_results,atl_results,estimator_name,candsets_s
     else:
         clf_old = clf
         
-    values = [round(candsets_super_results[key][clf_old],3) for key in candsets_super_results.keys()]
+    values = [round(candsets_super_results[key][clf_old]['f1'],3) for key in candsets_super_results.keys()]
     df_super = pd.DataFrame(values,index=candsets_super_results.keys(),columns=[clf])
     
     if('logreg' in df_super.columns):
@@ -2256,7 +2480,7 @@ def createWeightedResultsDFOneEstimator(al_results,atl_results,weighting,estimat
     else:
         clf_old = clf
         
-    values = [round(candsets_super_results[key][clf_old],3) for key in candsets_super_results.keys()]
+    values = [round(candsets_super_results[key][clf_old]['f1'],3) for key in candsets_super_results.keys()]
     df_super = pd.DataFrame(values,index=candsets_super_results.keys(),columns=[clf])
     
     if('logreg' in df_super.columns):

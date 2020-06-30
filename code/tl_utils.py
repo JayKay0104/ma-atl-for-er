@@ -59,8 +59,8 @@ from IPython.display import display
 #                        ax.plot(x[idx], y_target_results[idx], 'ro') 
 #                # benchmark plots
 #                # supervised
-#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
-#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf]['f1'],len(x)))
+#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf]['f1'],2)),
 #                        color=colors[i%len(colors)])
 #        else:
 #            for i,clf in enumerate(selected_estimators):
@@ -84,8 +84,8 @@ from IPython.display import display
 #                        ax.plot(x[idx], y_target_results[idx], 'ro') 
 #                # benchmark plots
 #                # supervised
-#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
-#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+#                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf]['f1'],len(x)))
+#                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf]['f1'],2)),
 #                        color=colors[i%len(colors)])
 #        
 #        
@@ -127,8 +127,8 @@ def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators
     plt.close(fig)
     props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
     # unsupervised bm plot
-    y_target_unsup_bm = list(itertools.repeat(candsets_unsuper_results[target_name],len(x)))
-    ax.plot(x,y_target_unsup_bm,linestyle='dashdot',color='g',lw=2,label='target unsupervised (elbow) benchmark. F1: {}'.format(round(candsets_unsuper_results[target_name],2)))
+    y_target_unsup_bm = list(itertools.repeat(candsets_unsuper_results[target_name]['f1'],len(x)))
+    ax.plot(x,y_target_unsup_bm,linestyle='dashdot',color='g',lw=2,label='target unsupervised (elbow) benchmark. F1: {}'.format(round(candsets_unsuper_results[target_name]['f1'],2)))
     ax.set_xlabel('x target instances used for training',fontsize=12)
     ax.set_ylabel('Avg. F1-Score',fontsize=12)
     
@@ -156,8 +156,8 @@ def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators
                         ax.plot(x[idx], y_target_results[idx], 'ro') 
                 # benchmark plots
                 # supervised
-                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
-                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf]['f1'],len(x)))
+                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf]['f1'],2)),
                         color=colors[i%len(colors)])
         else:
             for i,clf in enumerate(selected_estimators):
@@ -181,8 +181,8 @@ def plotTLResults(tl_results,source_name,target_name,feature,selected_estimators
                         ax.plot(x[idx], y_target_results[idx], 'ro') 
                 # benchmark plots
                 # supervised
-                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf],len(x)))
-                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf],2)),
+                y_target_sup_bm = list(itertools.repeat(candsets_super_results[target_name][clf]['f1'],len(x)))
+                ax.plot(x,y_target_sup_bm,linestyle='dotted',label='target supervised ({}) benchmark. F1: {}'.format(clf,round(candsets_super_results[target_name][clf]['f1'],2)),
                         color=colors[i%len(colors)])
         
         
@@ -332,7 +332,7 @@ def createDFwithTLResults(tl_results,candsets_super_results,candsets_unsuper_res
                     tl_candsets_super_results.update({combo:{clf:copy.deepcopy(candsets_super_results[combo][clf])}})
                 
     innerkeys =  [innerkey for k,innerdict in tl_candsets_super_results.items() for innerkey, values in innerdict.items()]
-    values = [round(values,3) for k,innerdict in tl_candsets_super_results.items() for innerkey, values in innerdict.items()]
+    values = [round(values['f1'],3) for k,innerdict in tl_candsets_super_results.items() for innerkey, values in innerdict.items()]
     df_super = pd.DataFrame(list(group(values,number_of_estimators)),index=tl_candsets_super_results.keys(),columns=innerkeys[:number_of_estimators])
     #list_of_estimators=['logreg','logregcv','dectree','randforest']
     columns_before = list(df_super.columns)
@@ -348,7 +348,8 @@ def createDFwithTLResults(tl_results,candsets_super_results,candsets_unsuper_res
     df = df.reindex(columns=['TL_avg','Tar_max','Tar_exc','Tar_sup'], level=2)
 
     #df['target'] = pd.Series(df.reset_index().apply(lambda x:x[1], axis=1).values, index=df.index)
-    unsuper_res_ser = pd.Series(candsets_unsuper_results,index=candsets_unsuper_results.keys(),name=('','','unsuper_res'))
+    f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+    unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('','','unsuper_res'))
     df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
     #df.drop(columns=[('target', '', '')],inplace=True)
     # round unsupervised results to three decimals
@@ -429,7 +430,8 @@ def returnDFwithTLResultsOfOneFeatureSet(df_tl_results,feature,candsets_unsuper_
             ('text-align','center')]}]
     
     df = df_tl_results.xs(feature,axis=1,level=0).copy()
-    unsuper_res_ser = pd.Series(candsets_unsuper_results,index=candsets_unsuper_results.keys(),name=('','unsuper_res'))
+    f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+    unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('','unsuper_res'))
     df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
     #import pdb; pdb.set_trace()
     col_tar_exc = [col for col in df.columns if col[1]=='Tar_exc']
@@ -450,13 +452,135 @@ def returnDFwithTLResultsOfOneFeatureSet(df_tl_results,feature,candsets_unsuper_
             f.write(html.render())
     return df
 
+#%%
+    
+def returnDFwithTLResultsSubset(df_tl_results,candsets_unsuper_results,feature,selected_estimator,filename=None):
+
+    # specify the styles for the html output
+    styles=[
+        {'selector': 'th','props': [
+            ('border-style', 'solid'),
+            ('border-color', '#D3D3D3'),
+            ('vertical-align','top'),
+            ('text-align','center')]}]
+    
+    df = df_tl_results.xs(feature,axis=1,level=0).copy()
+    if(selected_estimator is not None):
+        print(f'Only displaying the results of {selected_estimator} using {feature} feature')
+        ####################################################
+        # another function for pandas style. Highlight Tar_exc with green            
+        def highlight_tar_exc_featureset(row):
+            # initiate list with the size of the row (length 32) with empty styling
+            lst = ['' for x in row.index]
+            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+            ser = row['TL_avg']>row['Tar_max']
+            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
+            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+            if(ser):
+                lst[2] = 'background-color: #A4FB95'
+            return lst
+    
+        # another function for pandas style. Highlight Tar_exc with green            
+        def highlight_tl_super_same_featureset(row):
+            # initiate list with the size of the row (length 32) with empty styling
+            lst = ['' for x in row.index]
+            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+            ser = ((row['TL_avg']>row['Tar_sup']) | ((row['Tar_sup']-row['TL_avg'])<=0.01))
+            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+            if(ser):
+                lst[3] = 'background-color: #A4FB95'
+            return lst
+        #####################################################
+    
+        df = df.xs(selected_estimator,axis=1,level=0).copy()
+        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('unsuper_res'))
+        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
+        #import pdb; pdb.set_trace()
+        col_tar_exc = [col for col in df.columns if col=='Tar_exc']
+        col_tar_exc_format = {}
+        for col in col_tar_exc:
+            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
+    
+        col_tar_exc_format.update({'unsuper_res':lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
+        #col_tl_avg = [col for col in df.columns if col=='TL_avg']
+        html = (df.style.\
+                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
+                apply(highlight_tar_exc_featureset,axis=1).\
+                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
+        display(html)
+    else:
+        ####################################################
+        # function for pandas styler. Highlight all max values of TL_avg
+        def highlight_max(data):
+            attr_max = 'background-color: #FBFF75'
+            if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+                is_max = data == data.max()
+                return [attr_max if v else '' for v in is_max]
+            else: 
+                is_max = data.groupby('TL_avg').transform('max') == data
+                return pd.DataFrame(np.where(is_max, attr_max, ''),
+                                    index=data.index, columns=data.columns)
+        # another function for pandas style. Highlight Tar_exc with green            
+        def highlight_tar_exc_featureset(row):
+            # initiate list with the size of the row (length 32) with empty styling
+            lst = ['' for x in row.index]
+            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+            ser = row[:,'TL_avg']>row[:,'Tar_max']
+            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
+            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+            k = 2
+            for i, b in enumerate(ser):
+                if(b):
+                    lst[i+k] = 'background-color: #A4FB95'
+                k = k + 3
+            return lst
+    
+        # another function for pandas style. Highlight Tar_exc with green            
+        def highlight_tl_super_same_featureset(row):
+            # initiate list with the size of the row (length 32) with empty styling
+            lst = ['' for x in row.index]
+            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+            ser = ((row[:,'TL_avg']>row[:,'Tar_sup']) | ((row[:,'Tar_sup']-row[:,'TL_avg'])<=0.01))
+            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+            k = 3
+            for i, b in enumerate(ser):
+                if(b):
+                    lst[i+k] = 'background-color: #A4FB95'
+                k = k + 3
+            return lst
+        #####################################################
+        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('','unsuper_res'))
+        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
+        #import pdb; pdb.set_trace()
+        col_tar_exc = [col for col in df.columns if col[1]=='Tar_exc']
+        col_tar_exc_format = {}
+        for col in col_tar_exc:
+            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
+    
+        col_tar_exc_format.update({('','unsuper_res'):lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
+        col_tl_avg = [col for col in df.columns if col[1]=='TL_avg']
+        html = (df.style.\
+                apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_tl_avg]).\
+                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
+                apply(highlight_tar_exc_featureset,axis=1).\
+                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
+        display(html)
+    
+    if(filename is not None):
+        with open('{}.html'.format(filename), 'w') as f:
+            f.write(html.render())
+    return df
 
 #%%
     
 def createDFwithSuperResults(candsets_super_results,number_of_estimators):
     innerkeys =  [innerkey for k,innerdict in candsets_super_results.items() for innerkey, values in innerdict.items()]
-    values = [round(values,3) for k,innerdict in candsets_super_results.items() for innerkey, values in innerdict.items()]
-    df_super = pd.DataFrame(list(group(values,4)),index=candsets_super_results.keys(),columns=innerkeys[:4])
+    values = [round(values['f1'],3) for k,innerdict in candsets_super_results.items() for innerkey, values in innerdict.items()]
+    df_super = pd.DataFrame(list(group(values,number_of_estimators)),index=candsets_super_results.keys(),columns=innerkeys[:number_of_estimators])
     return df_super
 
     

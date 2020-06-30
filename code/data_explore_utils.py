@@ -108,17 +108,25 @@ def returnPassiveLearningResultsHoldoutSet(estimator,candset_train,candset_test,
     
     estimator.fit(X_train,y_train)
     pred = estimator.predict(X_test)
-    return f1_score(y_test, pred, pos_label=1, average='binary')
+    params = estimator.get_params()
+    
+    return f1_score(y_test, pred, pos_label=1, average='binary'),params
+
     
 def returnSuperBMsInDict(candsets_train, candsets_test, estimators, features, progress_bar=True):
     """
-    For each candest in candsets dictionary caluclate the cross validated performance of each
-    estimator provided in estimators dictionary on the columns specified in rel_columns.
+    For each candest in candsets dictionary calculate the performance on hold-out test set when trained on training set of each
+    using the estimators provided in estimators dictionary on the features specified in features argument.
     
-    Estimators: dictionary of sklearn estimators that shall be used to train a classifier (Exp: {'logreg':LogisticRegression(),'dectree':DecisionTree()})
     Candsets_train: dictionary of all training sets
     Candsets_test: dictionary of all test sets
+    Estimators: dictionary of sklearn estimators that shall be used to train a classifier (Exp: {'logreg':LogisticRegression(),'dectree':DecisionTree()})
+    features: list of features that shall be used
     Progress_bar: Boolean if progress bar shall be printed to track progress. Default: True
+    
+    Returns:
+        dictionary with combinations as first keys and estimators as second keys.
+        f1 and model_params are the final keys
     """
     d={}
     
@@ -127,11 +135,11 @@ def returnSuperBMsInDict(candsets_train, candsets_test, estimators, features, pr
         sup.printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
         for i, candset in enumerate(candsets_train.keys()):
             for clf in estimators:
-                res = returnPassiveLearningResultsHoldoutSet(estimators[clf],candsets_train[candset],candsets_test[candset],features)
+                res,params = returnPassiveLearningResultsHoldoutSet(estimators[clf],candsets_train[candset],candsets_test[candset],features)
                 if(candset not in d):
-                    d.update({'{}'.format(candset):{clf:res}})
+                    d.update({'{}'.format(candset):{clf:{'f1':res,'model_params':params}}})
                 else:
-                    d[candset].update({clf:res})
+                    d[candset].update({clf:{'f1':res,'model_params':params}})
             # Update Progress Bar
             sup.printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
     else:
@@ -139,9 +147,10 @@ def returnSuperBMsInDict(candsets_train, candsets_test, estimators, features, pr
             for clf in estimators:
                 res = returnPassiveLearningResultsHoldoutSet(estimators[clf],candsets_train[candset],candsets_test[candset],features)
                 if(candset not in d):
-                    d.update({'{}'.format(candset):{clf:res}})
+                    d.update({'{}'.format(candset):{clf:{'f1':res,'model_params':params}}})
                 else:
-                    d[candset].update({clf:res})
+                    d[candset].update({clf:{'f1':res,'model_params':params}})
+    
     return d
 
 
@@ -151,14 +160,10 @@ def returnSuperBMsInDict(candsets_train, candsets_test, estimators, features, pr
 def returnUnsuperBMsInDict(candsets_test, label='label'):
     """
     Calculate unsupervised results using the elbow threshold on the sum of weighted similarities (density).
-    Returns dictionary with the results of form {'ban_half':0.7316810344827587,'bx_half': 0.6263565891472868,...}
+    Returns dictionary with the results of form {'ban_half':{'f1':0.7316810344827587,'elbow_threshold':0.663},...}
     
-    Candsets: dictionary of feature vectors (DataFrames) of potential correspondences (Exp: {'ban_half':ban_half,'ban_bx':ban_bx})
+    Candsets_test: dictionary of all test sets
     Label: Column name where the true labels are stored. Default: 'label'
-    test_size: in order to create comparable results this should not be changes unless for each experiment it gets changed in the same way.
-        Default: 0.33
-    random_state: in order to create comparable results this should not be changes unless for each experiment it gets changed in the same way.
-        Default: 42
     """
     
     d={}
@@ -187,7 +192,7 @@ def returnUnsuperBMsInDict(candsets_test, label='label'):
         #elbow_label = X_test[agg_sim].apply(lambda x: 1 if (x>=elbow_th) else 0)
         
         res = f1_score(X_test[label],elb_labels)
-        d.update({candset:res})
+        d.update({candset:{'f1':res,'elbow_threshold':elbow_th}})
         #print('{} und {}'.format(candset,res))
         # Update Progress Bar
         #sup.printProgressBar(i + 1, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
@@ -196,11 +201,7 @@ def returnUnsuperBMsInDict(candsets_test, label='label'):
 def calcWeightedSumOfSimScores(feature_vector):
     
     columns = feature_vector.columns[feature_vector.columns.str.endswith('sim')].tolist()
-    if('sum_weighted_sim' in columns):
-        columns.remove('sum_weighted_sim')
-        print('sum_weighted_sim was in columns and hence got removed. Only the non-aggregated similarity scores containing sim as substring\
-              are consider')
-    #print(columns)
+
     rel_columns = feature_vector[columns]
     rel_columns = rel_columns.replace(-1,np.nan)
     
@@ -210,8 +211,6 @@ def calcWeightedSumOfSimScores(feature_vector):
         ratio = float(nan_values)/float(len(rel_columns[column]))
         column_weights.append(1.0-ratio)
     
-    #print(column_weights)
-    #logger.debug(column_weights)
     weighted_columns = rel_columns*column_weights
     #logger.debug(weighted_columns.iloc[0])
     
