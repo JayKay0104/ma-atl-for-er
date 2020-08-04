@@ -48,7 +48,7 @@ def calcDomainRelatednessCV(source, target, relevant_columns, cv=5, metric='phi'
     # remove the label 'source' from the features
     train.drop(columns='source',inplace=True)
     # create a LogisticRegressionCV with cv=5 and solver='liblinear'
-    clf = LogisticRegressionCV(cv=5, solver='liblinear')
+    clf = LogisticRegressionCV(cv=5, solver='liblinear',class_weight='balanced')
     if(metric=='f1'):
         # output the mean of the cross_validated f1-scores
         return np.mean(cross_val_score(clf, train, train_y, cv=cv, scoring='f1'))
@@ -289,7 +289,7 @@ def plotDensityAttributesHeatmap(candsets, return_fig=False):
     g = sns.heatmap(all_nan_share.drop(columns='ids'),annot=True,square=True,cmap='coolwarm',linewidths=.5)
     g.set_xticklabels(g.get_xticklabels(), rotation=45, horizontalalignment='right', fontsize=14)
     g.set_yticklabels(g.get_yticklabels(), rotation=0, horizontalalignment='right', fontsize=14)
-    g.set_title('Density of Attributes for all Dataset Combinations',fontsize=20)
+    g.set_title('Density of Attributes for all Candidate Sets',fontsize=20)
     fig = g.get_figure()
     
     if(return_fig):
@@ -328,7 +328,7 @@ def plotDistOfFeature(source_name,target_name,features,candsets):
             if(i%2==1):
                 k += 1
     plt.tight_layout()
-    return None
+    return fig
 
 #%%
 def ecdf(x):
@@ -337,9 +337,9 @@ def ecdf(x):
     return xs, ys
 
 def plotECDFsForFeatures(source_name,target_name,features,candsets):
-    n_rows = round(len(features)/2+0.5)
-    source = candsets[source_name]
-    target = candsets[target_name]
+    n_rows = round(len(features)/2)
+    source = candsets[source_name].replace(-1,np.nan)
+    target = candsets[target_name].replace(-1,np.nan)
     if(len(features)==1):
         fig,ax = plt.subplots(figsize=(16,8))
         x_source,y_source = ecdf(source[features[0]])
@@ -358,7 +358,7 @@ def plotECDFsForFeatures(source_name,target_name,features,candsets):
             ax[i].set_title('ecdfs of feature {}'.format(fea))
             ax[i].legend()
     else:
-        fig,ax = plt.subplots(nrows=n_rows,ncols=2,figsize=(16,10))
+        fig,ax = plt.subplots(nrows=n_rows,ncols=2,figsize=(20,12))
         k = 0
         for i,fea in enumerate(features):
             x_source,y_source = ecdf(source[fea])
@@ -370,7 +370,7 @@ def plotECDFsForFeatures(source_name,target_name,features,candsets):
             if(i%2==1):
                 k += 1
     plt.tight_layout()
-    return None
+    return fig
 
 #%%
 ###### PROFILING DIMENSIONS ######
@@ -404,10 +404,10 @@ class DataProfiling():
         self.important_features = None
         #self.label_attr = self.metadata_mt.get("primattr")
         
-        self.ds1_subset=ds1[ds1.filter(regex='id').isin(gs['ds1'])]
-        self.ds2_subset=ds2[ds2.filter(regex='id').isin(gs['ds2'])]
-        self.ds1_subset_match=ds1[ds1.filter(regex='id').isin(gs[gs['label']==1]['ds1'])]
-        self.ds2_subset_match=ds2[ds2.filter(regex='id').isin(gs[gs['label']==1]['ds2'])]
+        self.ds1_subset=ds1[ds1.filter(regex='id').isin(gs['ds1'])].copy()
+        self.ds2_subset=ds2[ds2.filter(regex='id').isin(gs['ds2'])].copy()
+        self.ds1_subset_match=ds1[ds1.filter(regex='id').isin(gs[gs['label']==1]['ds1'])].copy()
+        self.ds2_subset_match=ds2[ds2.filter(regex='id').isin(gs[gs['label']==1]['ds2'])].copy()
         self.gs_prediction_scores = None
         
         self.dict_summary =  {}
@@ -426,8 +426,8 @@ class DataProfiling():
             self.dict_summary['#non-match'] = len(self.gs[self.gs['label']==0])
             self.dict_summary['#match'] = sum(self.gs['label'])
 
-            #self.dict_summary['ratio_pos'] = len(self.gs_feature_vector[self.gs_feature_vector['label']==True])/count_record_pairs
-            #self.dict_summary['ratio_neg'] = len(self.gs_feature_vector[self.gs_feature_vector['label']==False])/count_record_pairs
+            self.dict_summary['ratio_pos'] = len(self.gs[self.gs['label']==True])/count_record_pairs
+            self.dict_summary['ratio_neg'] = len(self.gs[self.gs['label']==False])/count_record_pairs
             short_string_attr = []
             long_string_attr = []
             num_attr = []
@@ -435,8 +435,8 @@ class DataProfiling():
             for attr in self.common_attributes_names:
                 if attr+"_lev_sim" in self.feature_vector.columns and attr+"_cosine_tfidf_sim"  not in self.feature_vector.columns: short_string_attr.append(attr)
                 elif attr+"_cosine_tfidf_sim"  in self.feature_vector.columns : long_string_attr.append(attr) 
-                elif attr+"_num_sim" in self.feature_vector.columns : num_attr.append(attr)
-                elif attr+"_years_sim" in self.feature_vector.columns : date_attr.append(attr)
+                elif attr+"_abs_diff_sim" in self.feature_vector.columns : num_attr.append(attr)
+                elif attr+"_years_diff_sim" in self.feature_vector.columns : date_attr.append(attr)
             
             self.dict_summary['#short_string_attr'] = len(short_string_attr)
             self.dict_summary['#long_string_attr'] = len(long_string_attr)
@@ -502,7 +502,9 @@ class DataProfiling():
         avg_length_words_ident_feature = []
         for attr in self.dict_profiling_features['top_relevant_attributes']: 
             #check if it is string
-            if (self.datatype_dict[attr]=='str'):
+            #print(attr)
+            if ('str' in self.datatype_dict[attr]):
+                #print(attr)
                 avg_length_tokens_ident_feature.append(np.mean([getAvgLength(self.ds1_subset, attr, 'tokens'), getAvgLength(self.ds2_subset, attr, 'tokens')]))
                 avg_length_words_ident_feature.append(np.mean([getAvgLength(self.ds1_subset, attr, 'words'), getAvgLength(self.ds2_subset, attr, 'words')]))
         

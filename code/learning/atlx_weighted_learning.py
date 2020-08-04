@@ -41,7 +41,6 @@ def atlx(candsets,candsets_train,candsets_test,source_name,target_name,feature,b
     model_pred_prob_end, model_feature_import_end, model_depth_tree_end = [],[],[]
     runtimes = []
     share_noise_labeled_set_pos_lst, share_noise_labeled_set_neg_lst = [],[]
-    #n_labeled = 0
     
     X_source = candsets[source_name][feature].to_numpy()
     y_source = candsets[source_name]['label'].to_numpy()
@@ -84,7 +83,6 @@ def atlx(candsets,candsets_train,candsets_test,source_name,target_name,feature,b
         # cerate the IdealLabeler with the full labeled training set
         lbr = IdealLabeler(fully_labeled_trn_ds)
 
-
         
         model = la.RandomForest_(random_state=42,warm_start=warm_start, n_estimators=10)
         
@@ -118,6 +116,7 @@ def atlx(candsets,candsets_train,candsets_test,source_name,target_name,feature,b
                                                         'share_noise_labeled_set_pos':share_noise_labeled_set_pos, 
                                                         'share_noise_labeled_set_neg':share_noise_labeled_set_neg,
                                                                   'share_of_corrected_labels':share_of_corrected_labels,
+                                                                  'disagreement_measure':disagreement,
                                                                   'model_params':model_.get_params(),'avg_runtime':runt,
                                                                   'training_accuracy_scores':training_accuracy_scores,
                                                                   'training_f1_scores':training_f1_scores,
@@ -137,6 +136,7 @@ def atlx(candsets,candsets_train,candsets_test,source_name,target_name,feature,b
                                                    'share_noise_labeled_set_pos':share_noise_labeled_set_pos, 
                                                         'share_noise_labeled_set_neg':share_noise_labeled_set_neg,
                                                              'share_of_corrected_labels':share_of_corrected_labels,
+                                                             'disagreement_measure':disagreement,
                                                              'model_params':model_.get_params(),'avg_runtime':runt,
                                                              'training_accuracy_scores':training_accuracy_scores,
                                                              'training_f1_scores':training_f1_scores,
@@ -349,29 +349,6 @@ def getQueryStrategy(query_strategy, train_ds, disagreement, estimator_name=None
         print("Query strategy not defined!")
     return qs
 
-##%%
-#    
-#def getLearningModel(estimator_name, warm_start=True):
-#    print('Initialize Learning Model')
-#    if estimator_name == 'rf': 
-#        model = la.RandomForest_(random_state=42,warm_start=warm_start, n_estimators=10)
-#    elif estimator_name =='lr': 
-#        model = la.LogisticRegression_(random_state=42,solver='liblinear', max_iter=1000)
-#    elif estimator_name == 'dt':
-#        model = la.DecisionTree_(random_state=42)
-#    elif estimator_name == 'lsvc':
-#        model = la.LinearSVC_(random_state=42)
-#    elif estimator_name == 'svc':
-#        model = la.SVC_(random_state=42,kernel='linear',probability=True)
-#    elif estimator_name == 'xgb':
-#        model = la.XGBClassifier_(random_state=42,objective="binary:logistic")
-#    elif estimator_name == 'gpc':
-#        model = la.GaussianProcess_(random_state=42)
-#    elif estimator_name == 'lrcv':
-#        model = la.LogisticRegressionCV_(random_state=42,cv=5, solver='liblinear', max_iter=1000)
-#    else:
-#        print('Unknown model type!')
-#    return model
 
 #%%
 def run_weighted_atl(train_ds,test_ds,lbr,model,qs,quota):

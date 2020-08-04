@@ -1,0 +1,410 @@
+{
+  "katom_cdi": {
+    "logreg": {
+      "f1": 0.8149882903981265,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "logregcv": {
+      "f1": 0.8750000000000001,
+      "model_params": {
+        "Cs": 10,
+        "class_weight": null,
+        "cv": 5,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1.0,
+        "l1_ratios": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "refit": true,
+        "scoring": null,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "svm": {
+      "f1": 0.8532731376975168,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "loss": "squared_hinge",
+        "max_iter": 1000,
+        "multi_class": "ovr",
+        "penalty": "l2",
+        "random_state": 42,
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "dectree": {
+      "f1": 0.8480725623582767,
+      "model_params": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "presort": "deprecated",
+        "random_state": 42,
+        "splitter": "best"
+      }
+    },
+    "randforest": {
+      "f1": 0.9038031319910514,
+      "model_params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "auto",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 10,
+        "n_jobs": null,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "xgb": {
+      "f1": 0.9166666666666667,
+      "model_params": {
+        "objective": "binary:logistic",
+        "base_score": 0.5,
+        "booster": null,
+        "colsample_bylevel": 1,
+        "colsample_bynode": 1,
+        "colsample_bytree": 1,
+        "gamma": 0,
+        "gpu_id": -1,
+        "importance_type": "gain",
+        "interaction_constraints": null,
+        "learning_rate": 0.300000012,
+        "max_delta_step": 0,
+        "max_depth": 6,
+        "min_child_weight": 1,
+        "missing": NaN,
+        "monotone_constraints": null,
+        "n_estimators": 100,
+        "n_jobs": 0,
+        "num_parallel_tree": 1,
+        "random_state": 42,
+        "reg_alpha": 0,
+        "reg_lambda": 1,
+        "scale_pos_weight": 1,
+        "subsample": 1,
+        "tree_method": null,
+        "validate_parameters": false,
+        "verbosity": null
+      }
+    }
+  },
+  "rewo_cdi": {
+    "logreg": {
+      "f1": 0.7268436578171091,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "logregcv": {
+      "f1": 0.7288732394366197,
+      "model_params": {
+        "Cs": 10,
+        "class_weight": null,
+        "cv": 5,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1.0,
+        "l1_ratios": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "refit": true,
+        "scoring": null,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "svm": {
+      "f1": 0.7269503546099291,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "loss": "squared_hinge",
+        "max_iter": 1000,
+        "multi_class": "ovr",
+        "penalty": "l2",
+        "random_state": 42,
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "dectree": {
+      "f1": 0.7857553130384837,
+      "model_params": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "presort": "deprecated",
+        "random_state": 42,
+        "splitter": "best"
+      }
+    },
+    "randforest": {
+      "f1": 0.822093023255814,
+      "model_params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "auto",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 10,
+        "n_jobs": null,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "xgb": {
+      "f1": 0.8508224617129894,
+      "model_params": {
+        "objective": "binary:logistic",
+        "base_score": 0.5,
+        "booster": null,
+        "colsample_bylevel": 1,
+        "colsample_bynode": 1,
+        "colsample_bytree": 1,
+        "gamma": 0,
+        "gpu_id": -1,
+        "importance_type": "gain",
+        "interaction_constraints": null,
+        "learning_rate": 0.300000012,
+        "max_delta_step": 0,
+        "max_depth": 6,
+        "min_child_weight": 1,
+        "missing": NaN,
+        "monotone_constraints": null,
+        "n_estimators": 100,
+        "n_jobs": 0,
+        "num_parallel_tree": 1,
+        "random_state": 42,
+        "reg_alpha": 0,
+        "reg_lambda": 1,
+        "scale_pos_weight": 1,
+        "subsample": 1,
+        "tree_method": null,
+        "validate_parameters": false,
+        "verbosity": null
+      }
+    }
+  },
+  "katom_rewo": {
+    "logreg": {
+      "f1": 0.7473784556720686,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "logregcv": {
+      "f1": 0.7476007677543186,
+      "model_params": {
+        "Cs": 10,
+        "class_weight": null,
+        "cv": 5,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1.0,
+        "l1_ratios": null,
+        "max_iter": 1000,
+        "multi_class": "auto",
+        "n_jobs": null,
+        "penalty": "l2",
+        "random_state": 42,
+        "refit": true,
+        "scoring": null,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "svm": {
+      "f1": 0.743158905424868,
+      "model_params": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "loss": "squared_hinge",
+        "max_iter": 1000,
+        "multi_class": "ovr",
+        "penalty": "l2",
+        "random_state": 42,
+        "tol": 0.0001,
+        "verbose": 0
+      }
+    },
+    "dectree": {
+      "f1": 0.7676289635589209,
+      "model_params": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "presort": "deprecated",
+        "random_state": 42,
+        "splitter": "best"
+      }
+    },
+    "randforest": {
+      "f1": 0.8096618357487924,
+      "model_params": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "auto",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_impurity_split": null,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "n_estimators": 10,
+        "n_jobs": null,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      }
+    },
+    "xgb": {
+      "f1": 0.8393442622950821,
+      "model_params": {
+        "objective": "binary:logistic",
+        "base_score": 0.5,
+        "booster": null,
+        "colsample_bylevel": 1,
+        "colsample_bynode": 1,
+        "colsample_bytree": 1,
+        "gamma": 0,
+        "gpu_id": -1,
+        "importance_type": "gain",
+        "interaction_constraints": null,
+        "learning_rate": 0.300000012,
+        "max_delta_step": 0,
+        "max_depth": 6,
+        "min_child_weight": 1,
+        "missing": NaN,
+        "monotone_constraints": null,
+        "n_estimators": 100,
+        "n_jobs": 0,
+        "num_parallel_tree": 1,
+        "random_state": 42,
+        "reg_alpha": 0,
+        "reg_lambda": 1,
+        "scale_pos_weight": 1,
+        "subsample": 1,
+        "tree_method": null,
+        "validate_parameters": false,
+        "verbosity": null
+      }
+    }
+  }
+}

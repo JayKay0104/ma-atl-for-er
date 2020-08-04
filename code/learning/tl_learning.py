@@ -527,6 +527,7 @@ def calcDomainRelatednessCV(source, target, relevant_columns, cv=5, metric='phi'
     """
     source = source[relevant_columns].copy()
     target = target[relevant_columns].copy()
+    
     # add new column 'source' to source and target dataset
     source['source'] = source.iloc[:,0].apply(lambda x: 0)
     target['source'] = target.iloc[:,0].apply(lambda x: 1)
@@ -537,7 +538,7 @@ def calcDomainRelatednessCV(source, target, relevant_columns, cv=5, metric='phi'
     # remove the label 'source' from the features
     train.drop(columns='source',inplace=True)
     # create a LogisticRegressionCV with cv=5 and solver='liblinear'
-    clf = LogisticRegressionCV(cv=5, solver='liblinear')
+    clf = LogisticRegressionCV(cv=5, solver='liblinear',class_weight='balanced')
     if(metric=='f1'):
         # output the mean of the cross_validated f1-scores
         return np.mean(cross_val_score(clf, train, train_y, cv=cv, scoring='f1'))

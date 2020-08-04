@@ -9,6 +9,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+sns.set(style="whitegrid")
+#sns.set_context("paper")
+sns.set_context("notebook", font_scale=1.5, rc={"lines.linewidth": 3,"font.size":19, "axes.labelsize":19,
+    "axes.titlesize":19})
+#, "xtick.labelsize","ytick.labelsize", "legend.fontsize"
 sns.set_color_codes()
 import itertools
 import math
@@ -89,6 +94,294 @@ def returnDFWithUnsuper(candsets_unsuper_results,filename=None):
         with open('{}.html'.format(filename), 'w') as f:
             f.write(html.render())
     return df_unsuper
+
+#%%
+    
+def plotATLXALUnsupResultsAll(atlx_results,quota,candsets,candsets_super_results,n,warm_start,selected_estimator=None,al_results=None,
+                   selected_qs=None,selected_weights=None,errorbars=False,saveFig=True,path_for_output='./graphics/custom_plots/',nrows=False,ncols=2,figsize=(16,20)):
+    """
+    Plots a customized plot of the results. Here it can be selected which source-target combination, which feature and especially which estimators are requested to be plotted.
+    If many estimators were used for the experiments it can be too confusing if all the estimator results are plotted in the graphic (as it is the case with returnTLExpResultPlotsInDict()).
+    Hence, here one can select a subset of estimators were the results shall show up in the grapic.
+    When specifying the name of source and target, it is important that it needs to be a valid combination. So only when source and target share on original dataset with each other they were
+    considered for the Experiments. So source = 'ban_half' and target = 'bx_wor' is not valid but source = 'ban_half' and target = 'wor_half' would be valid because both share 'half' with each other.
+    
+    @parameters
+    atl_results: Dictionary with the results of the ATL Experiments. Either result of returnF1TLResultsFromDictWithPlot() function or importJSONFileInDict() when the results were imported from hard disk.
+    source: Specify the name of the source. Exp: 'bx_half'
+    target: Specify the name of the source. Exp: 'bx_wor'
+    candsets: Dictionary containing all candidate sets (pot. correspondences)
+    candsets_unsuper_results: Dictionary containing all the Results of Unsupervised Matching
+    candsets_super_results: Dictionary containing all the Results of Supervised Matching for each Estimator
+    save_fig: If True the plot gets saved on hard disk
+    path_for_output: If save_fig == True then the path to the directory needs to be specified. Default: './graphics/TL/custom_plots/'
+    """
+    x = np.arange(0,quota+1)
+    d = atlx_results
+    
+    number_combos = len(d.keys())
+        
+    qss,estimators = [],[]
+    if nrows==False:
+        fig,ax = plt.subplots(nrows=int(number_combos/ncols), ncols=ncols, figsize=figsize,constrained_layout=True)
+    else:
+        fig,ax = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize,constrained_layout=True)
+        
+    keys = list(d.keys())
+    k = 0
+    for i,combo in enumerate(d):
+        if(not isinstance(keys[0],tuple)):
+            source = '_'.join(combo.split('_')[:2])
+            target = '_'.join(combo.split('_')[2:])
+        else:
+            source = combo[0]
+            target = combo[1]
+        
+        ax[k,i%ncols].set_xlabel('x target instances queried',fontsize=17)
+        ax[k,i%ncols].set_ylabel('Avg. F1-Score',fontsize=17)
+
+
+        if(selected_estimator is None):
+            for clf in d[combo]:
+                estimators.append(clf)
+                if(clf == 'lr'):
+                    clf_old = 'logreg'
+                elif(clf == 'rf'):
+                    clf_old = 'randforest'
+                elif(clf == 'lrcv'):
+                    clf_old = 'logregcv'
+                elif(clf == 'dt'):
+                    clf_old = 'dectree'
+                else:
+                    clf_old = clf
+                if(selected_qs is None):
+                    for qs in d[combo][clf]:
+                        qss.append(qs)
+                        if selected_weights is None:
+                            for weight in d[combo][clf][qs]:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                #max_quota = d[combo][clf][qs][weight]['quota']
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                        label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                        label='ATLX: {}; {}'.format(weight,qs))
+                        else:
+                            for weight in selected_weights:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+
+                        if(al_results is not None):
+                            d2 = al_results
+                            plt.close()
+                            al_max_quota = d2[target][clf][qs]['quota']
+                            x_al_results = np.arange(1, al_max_quota + 1)
+                            al_test_f1_scores = np.array(d2[target][clf][qs]['test_f1_scores'])
+                            y_al_results = np.mean(al_test_f1_scores,axis=0)
+                            #n_init_labeled = d2[target][clf][qs]['n_init_labeled']
+                            std_al_results = np.std(al_test_f1_scores, axis=0)
+                            if(errorbars):
+                                ax[k,i%ncols].errorbar(x_al_results, y_al_results, yerr=std_al_results,
+                                            label='AL Unsup Boot')
+                            else:
+                                ax[k,i%ncols].plot(x_al_results,y_al_results,linewidth=2,linestyle='dashed',
+                                        label='AL Unsup Boot')
+                else:
+                    for qs in selected_qs:
+                        qss.append(qs)
+                        if selected_weights is None:
+                            for weight in d[combo][clf][qs]:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+                        else:
+                            for weight in selected_weights:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+
+                        if(al_results is not None):
+                            d2 = al_results
+                            al_max_quota = d2[target][clf][qs]['quota']
+                            x_al_results = np.arange(1, al_max_quota + 1)
+                            al_test_f1_scores = np.array(d2[target][clf][qs]['test_f1_scores'])
+                            y_al_results = np.mean(al_test_f1_scores,axis=0)
+                            #n_init_labeled = d2[target][clf][qs]['n_init_labeled']
+                            std_al_results = np.std(al_test_f1_scores, axis=0)
+                            if(errorbars):
+                                ax[k,i%ncols].errorbar(x_al_results, y_al_results, yerr=std_al_results,
+                                            label='AL Unsup Boot')
+                                ax[k,i%ncols].plot(x_al_results,y_al_results,linewidth=2,linestyle='dashed',
+                                        label='AL Unsup Boot')
+                # benchmark plots
+                # supervised
+                f1_target_bm = candsets_super_results[target][clf_old]['f1']
+                y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
+                ax[k,i%ncols].plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='target supervised ({}) benchmark {} instances F1: {:.2f}'.format(clf,candsets[target].shape[0],f1_target_bm))
+        else:
+            for clf in selected_estimator:
+                estimators.append(clf)
+                if(clf == 'lr'):
+                    clf_old = 'logreg'
+                elif(clf == 'rf'):
+                    clf_old = 'randforest'
+                elif(clf == 'lrcv'):
+                    clf_old = 'logregcv'
+                elif(clf == 'dt'):
+                    clf_old = 'dectree'
+                else:
+                    clf_old = clf
+                if(selected_qs is None):
+                    for qs in d[combo][clf]:
+                        qss.append(qs)
+                        if selected_weights is None:
+                            for weight in d[combo][clf][qs]:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+                        else:
+                            for weight in selected_weights:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+
+                    if(al_results is not None):
+                        d2 = al_results
+                        plt.close()
+                        al_max_quota = d2[target][clf][qs]['quota']
+                        x_al_results = np.arange(1, al_max_quota + 1)
+                        al_test_f1_scores = np.array(d2[target][clf][qs]['test_f1_scores'])
+                        y_al_results = np.mean(al_test_f1_scores,axis=0)
+                        #n_init_labeled = d2[target][clf][qs]['n_init_labeled']
+                        std_al_results = np.std(al_test_f1_scores, axis=0)
+                        if(errorbars):
+                            ax[k,i%ncols].errorbar(x_al_results, y_al_results, yerr=std_al_results,
+                                        label='AL Unsup Boot')
+                        else:
+                            ax[k,i%ncols].plot(x_al_results,y_al_results,linewidth=2,linestyle='dashed',
+                                    label='AL Unsup Boot')
+                else:
+                    for qs in selected_qs:
+                        qss.append(qs)
+                        if selected_weights is None:
+                            for weight in d[combo][clf][qs]:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+                        else:
+                            for weight in selected_weights:
+                                plt.close()
+                                max_quota = d[combo][clf][qs][weight]['quota']
+                                x_atl_results = np.arange(1, max_quota + 1)
+                                atl_test_f1_scores = np.array(d[combo][clf][qs][weight]['test_f1_scores'])
+                                y_atl_results = np.mean(atl_test_f1_scores,axis=0)
+                                std_atl_results = np.std(atl_test_f1_scores, axis=0)
+                                if(errorbars):
+                                    ax[k,i%ncols].errorbar(x_atl_results, y_atl_results, yerr=std_atl_results,
+                                                label='ATLX: {}; {}'.format(weight,qs))
+                                else:
+                                    ax[k,i%ncols].plot(x_atl_results,y_atl_results,linewidth=2,
+                                            label='ATLX: {}; {}'.format(weight,qs))
+
+                        if(al_results is not None):
+                            d2 = al_results
+                            al_max_quota = d2[target][clf][qs]['quota']
+                            x_al_results = np.arange(1, al_max_quota + 1)
+                            al_test_f1_scores = np.array(d2[target][clf][qs]['test_f1_scores'])
+                            y_al_results = np.mean(al_test_f1_scores,axis=0)
+                            #n_init_labeled = d2[target][clf][qs]['n_init_labeled']
+                            std_al_results = np.std(al_test_f1_scores, axis=0)
+                            if(errorbars):
+                                ax[k,i%ncols].errorbar(x_al_results, y_al_results, yerr=std_al_results,
+                                            label='AL Unsup Boot')
+                            else:
+                                ax[k,i%ncols].plot(x_al_results,y_al_results,linewidth=2,linestyle='dashed',
+                                        label='AL Unsup Boot')
+                # benchmark plots
+                # supervised
+                f1_target_bm = candsets_super_results[target][clf_old]['f1']
+                y_target_sup_bm = list(itertools.repeat(f1_target_bm,len(x)))
+                ax[k,i%ncols].plot(x,y_target_sup_bm,linewidth=3,linestyle='dotted',label='passive learning target {} inst.'.format(candsets[target].shape[0]))
+            
+            # add legend to plot
+            #ax[k,i%ncols].legend(fontsize=17)
+            #ax[k,i%ncols].set_title('source: {}, target = {}'.format(source,target),fontsize=21)
+            if(i%ncols==2):
+                k += 1
+    
+    #lines, labels = fig.axes[-1].get_legend_handles_labels()
+    
+    #fig.legend(lines, labels, loc='lower left', bbox_to_anchor= (0.2, 1.01), ncol=2,
+    #           borderaxespad=0, frameon=False,fontsize=21)
+    #fig.suptitle('ATLX Evaluation',fontsize=21)
+    #fig.tight_layout()
+    
+    if(saveFig):
+        fig.savefig(path_for_output,dpi=600,bbox_inches='tight')
+    
+    return fig
+
 
 #%%
 ### Help functions to plot and display the ATL RF compared to AL Unsupervised Bootstrapping Method ###
@@ -521,6 +814,10 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
     if(number_of_qs==2):
         df_super = pd.concat([df_super,df_super],axis=1)
         df_super = df_super[[clf]]
+        
+    if(number_of_qs==3):
+        df_super = pd.concat([df_super,df_super,df_super],axis=1)
+        df_super = df_super[[clf]]
 
     df_super.columns = pd.MultiIndex.from_product([[clf],qss,['all'],['Tar_sup']],names=['Estimator','QS','Iterations','Results'])
     df = pd.merge(df,df_super,how='left',left_on='Target',right_index=True)
@@ -528,6 +825,13 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
     df = df.reindex(columns=qss,level=1)
     df = df.reindex(columns=['2nd','10th','20th','30th','50th','100th','all'],level=2)
     #col_al_atl = [col for col in df.columns if col[3]=='ATL' or col[3]=='AL']
+    print(f'Weighting: {selected_weighting} and Query Strategy: {selected_qs}')
+    
+    styleDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(df,qss,number_of_qs,filename)
+            
+    return df
+
+def styleDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(df,qss,number_of_qs,filename):
     col_tar_sup = [col for col in df.columns if col[3]=='Tar_sup']
     col_tar_sup_format = {col:lambda x: '<font color=\'#000000\'><b>{}</b></font>'.format(x) for col in col_tar_sup}
                                                
@@ -555,7 +859,7 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
         # initiate list with the size of the row with empty styling
         lst = ['' for x in row.index]
         # get the positions where TL_avg is bigger than Tar_max. 
-        ser = (row[:,:,:,'ATLX']>row[:,:,:,'AL'])
+        ser = (row[:,:,:,'ATLX']-row[:,:,:,'AL'])<0.01
         # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
         # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
         k = 0
@@ -571,7 +875,7 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
         # initiate list with the size of the row with empty styling
         lst = ['' for x in row.index]
         # get the positions where TL_avg is bigger than Tar_max. 
-        ser = (row[:,qss[0],:,'ATLX']>row[:,'random',:,'ATLX'])
+        ser = (row[:,qss[0],:,'ATLX']-row[:,'random',:,'ATLX'])>0.01
         # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
         # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
         k = 0
@@ -581,6 +885,34 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
                 lst[k] = 'background-color:#FFA500'
             #elif(i<6 and b):
             #    lst[k] = 'color:#000000;background-color:rgba(51, 204, 51, .1);'
+            else:
+                lst[k] = ''
+            k += 2
+        return lst
+    
+    def highlight_qs2_worse_than_rs(row):
+        # initiate list with the size of the row with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. 
+        ser1 = (row[:,qss[0],:,'ATLX']-row[:,'random',:,'ATLX'])>0.01
+        ser2 = (row[:,qss[1],:,'ATLX']-row[:,'random',:,'ATLX'])>0.01
+        ser = ser1.append(ser2)
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+        # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+        k = 0
+        for i, b in enumerate(ser):
+            if(i<6 and not b):
+                # yellow: #FFFF00
+                lst[k] = 'background-color:#FFA500'
+            #elif(i<6 and b):
+            #    lst[k] = 'color:#000000;background-color:rgba(51, 204, 51, .1);'
+            elif(i>=6 and i<12 and not b):
+                # yellow: #FFFF00
+                if(i==6):
+                    k += 1
+                lst[k] = 'background-color:#FFA500'
+            elif(i==6):
+                k += 1
             else:
                 lst[k] = ''
             k += 2
@@ -610,18 +942,24 @@ def createDFwithAlUnsupandATLXResultsMoreItersUpToMaxQuota(atlx_results,al_unsup
             ('vertical-align','top'),
             ('text-align','center')]}]
    
-    html = (df.style.\
-            apply(highlight_qs_worse_than_rs,axis=1).\
-            #apply(highlight_al_worse_than_atl,axis=1).\
+    if(number_of_qs==3):
+        html = (df.style.\
+            apply(highlight_qs2_worse_than_rs,axis=1).\
             apply(highlight_atl_worse_than_al,axis=1).\
             apply(highlight_atl_exceed_bm,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_sup_format)
-    print(f'Weighting: {selected_weighting} and Query Strategy: {selected_qs}')
+        
+    else:
+        html = (df.style.\
+                apply(highlight_qs_worse_than_rs,axis=1).\
+                #apply(highlight_al_worse_than_atl,axis=1).\
+                apply(highlight_atl_worse_than_al,axis=1).\
+                apply(highlight_atl_exceed_bm,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_sup_format)
+    
     display(html)
     if(filename is not None):
         with open('{}.html'.format(filename), 'w') as f:
             f.write(html.render())
-            
-    return df
+
 
 def createDFwithAlUnsupandATLXResultsToCompareDA(atlx_results,al_unsup_results,candsets_super_results,selected_qs='lr_lsvc_rf_dt',max_quota=100,filename=None):
     """
@@ -655,7 +993,7 @@ def createDFwithAlUnsupandATLXResultsToCompareDA(atlx_results,al_unsup_results,c
         al_mean_test_f1_scores = np.mean(al_unsup_results[target][clf][selected_qs]['test_f1_scores'],axis=0)
         mean_test_f1_scores = np.mean(d[key][clf][selected_qs]['no_weighting']['test_f1_scores'],axis=0)
         mean_test_f1_scores_nn = np.mean(d[key][clf][selected_qs]['nn']['test_f1_scores'],axis=0)
-        mean_test_f1_scores_lp = np.mean(d[key][clf][selected_qs]['lr_predict_proba']['test_f1_scores'],axis=0)
+        mean_test_f1_scores_lp = np.mean(d[key][clf][selected_qs]['lrcv_predict_proba']['test_f1_scores'],axis=0)
     
         mean_2iter.append(round(mean_test_f1_scores[1],3))
         column_list.append((clf,selected_qs,'2nd','ATLX'))
@@ -711,6 +1049,13 @@ def createDFwithAlUnsupandATLXResultsToCompareDA(atlx_results,al_unsup_results,c
     df = df.reindex(columns=[clf],level=0)
     df = df.reindex(columns=[selected_qs],level=1)
     df = df.reindex(columns=['2nd','20th','50th','100th','all'],level=2)
+    
+    print(f'All ATLX results with no_weighting and nn as well as lr_predict_proba (lp) and Query Strategy: {selected_qs}')
+    styleDFwithAlUnsupandATLXResultsToCompareDA(df,filename)
+    
+    return df
+
+def styleDFwithAlUnsupandATLXResultsToCompareDA(df,filename=None):
     col_atl = [col for col in df.columns if col[3]=='ATLX' or col[3]=='_NN' or col[3]=='_LP']
     col_2nd_atl = [col for col in df.columns if (col[2]=='2nd' and (col[3]=='ATLX' or col[3]=='_NN' or col[3]=='_LP'))]
     col_20th_atl = [col for col in df.columns if (col[2]=='20th' and (col[3]=='ATLX' or col[3]=='_NN' or col[3]=='_LP'))]
@@ -818,13 +1163,12 @@ def createDFwithAlUnsupandATLXResultsToCompareDA(atlx_results,al_unsup_results,c
             apply(highlight_nn_exceed_bm,axis=1).\
             apply(highlight_lp_exceed_bm,axis=1).\
             apply(highlight_al_exceed_atl,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_sup_format)
-    print(f'All ATLX results with no_weighting and nn as well as lr_predict_proba (lp) and Query Strategy: {selected_qs}')
+    
     display(html)
     if(filename is not None):
         with open('{}.html'.format(filename), 'w') as f:
             f.write(html.render())
-            
-    return df
+    
 
 #%%
 ### Plot and Display AWTL Experiment results ###
@@ -1279,7 +1623,7 @@ def createDFwithAlandAWTLResultsMoreItersUpToMaxQuota(awtl_results,al_results,se
         # initiate list with the size of the row with empty styling
         lst = ['' for x in row.index]
         # get the positions where TL_avg is bigger than Tar_max. 
-        ser = (row[:,'lr_lsvc_rf_dt',:,'ATL']>row[:,'random',:,'ATL'])
+        ser = (row[:,'lr_lsvc_rf_dt',:,'ATL']-row[:,'random',:,'ATL'])>0.01
         # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
         # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
         k = 0
@@ -1344,7 +1688,7 @@ def createDFwithAlandAWTLResultsToCompareDA(awtl_results,al_results,candsets_sup
         Default: 'tl_results'
     """
     d = awtl_results
-    selected_qs = 'lr_lsvc_rf_dt'
+    #selected_qs = 'lr_lsvc_rf_dt'
     mean_2iter,mean_20iter,mean_50iter,mean_100iter = [],[],[],[]
     
     column_list = []
@@ -1418,6 +1762,13 @@ def createDFwithAlandAWTLResultsToCompareDA(awtl_results,al_results,candsets_sup
     df = df.reindex(columns=[clf],level=0)
     df = df.reindex(columns=[selected_qs],level=1)
     df = df.reindex(columns=['2nd','20th','50th','100th','all'],level=2)
+    
+    styleDFwithAlandAWTLResultsToCompareDA(df,filename,selected_qs)
+            
+    return df
+
+
+def styleDFwithAlandAWTLResultsToCompareDA(df,filename=None,selected_qs='lr_lsvc_rf_dt'):
     col_atl = [col for col in df.columns if col[3]=='ATL' or col[3]=='_NN' or col[3]=='_LP']
     col_2nd_atl = [col for col in df.columns if (col[2]=='2nd' and (col[3]=='ATL' or col[3]=='_NN' or col[3]=='_LP'))]
     col_20th_atl = [col for col in df.columns if (col[2]=='20th' and (col[3]=='ATL' or col[3]=='_NN' or col[3]=='_LP'))]
@@ -1425,7 +1776,7 @@ def createDFwithAlandAWTLResultsToCompareDA(awtl_results,al_results,candsets_sup
     col_100th_atl = [col for col in df.columns if (col[2]=='100th' and (col[3]=='ATL' or col[3]=='_NN' or col[3]=='_LP'))]
     col_tar_sup = [col for col in df.columns if col[3]=='Tar_sup']
     col_tar_sup_format = {col:lambda x: '<font color=\'#000000\'><b>{}</b></font>'.format(x) for col in col_tar_sup}
-                                               
+                          
     ###########################################################################################
     # style functions as nested functions
     
@@ -1527,11 +1878,11 @@ def createDFwithAlandAWTLResultsToCompareDA(awtl_results,al_results,candsets_sup
             apply(highlight_al_exceed_atl,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_sup_format)
     print(f'All ATL results with no_weighting and nn as well as lr_predict_proba (lp) and Query Strategy: {selected_qs}')
     display(html)
+    
     if(filename is not None):
         with open('{}.html'.format(filename), 'w') as f:
             f.write(html.render())
-            
-    return df
+    
 
 #%%
 ### Plot and display function for TL Experiments ###
@@ -1867,127 +2218,207 @@ def returnDFwithTLResultsOfOneFeatureSet(df_tl_results,feature,candsets_unsuper_
     return df
 
     
-def returnDFwithTLResultsSubset(df_tl_results,candsets_unsuper_results,feature,selected_estimator,filename=None):
+#def returnDFwithTLResultsSubset(df_tl_results,candsets_unsuper_results,feature,selected_estimator,filename=None):
+#
+#    # specify the styles for the html output
+#    styles=[
+#        {'selector': 'th','props': [
+#            ('border-style', 'solid'),
+#            ('border-color', '#D3D3D3'),
+#            ('vertical-align','top'),
+#            ('text-align','center')]}]
+#    
+#    df = df_tl_results.xs(feature,axis=1,level=0).copy()
+#    if(selected_estimator is not None):
+#        print(f'Only displaying the results of {selected_estimator} using {feature} feature')
+#        ####################################################
+#        # another function for pandas style. Highlight Tar_exc with green            
+#        def highlight_tar_exc_featureset(row):
+#            # initiate list with the size of the row (length 32) with empty styling
+#            lst = ['' for x in row.index]
+#            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+#            ser = row['TL_avg']>row['Tar_max']
+#            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
+#            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+#            if(ser):
+#                lst[2] = 'background-color: #A4FB95'
+#            return lst
+#    
+#        # another function for pandas style. Highlight Tar_exc with green            
+#        def highlight_tl_super_same_featureset(row):
+#            # initiate list with the size of the row (length 32) with empty styling
+#            lst = ['' for x in row.index]
+#            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+#            ser = ((row['TL_avg']>row['Tar_sup']) | ((row['Tar_sup']-row['TL_avg'])<=0.01))
+#            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+#            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+#            if(ser):
+#                lst[3] = 'background-color: #A4FB95'
+#            return lst
+#        #####################################################
+#    
+#        df = df.xs(selected_estimator,axis=1,level=0).copy()
+#        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+#        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('unsuper_res'))
+#        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
+#        #import pdb; pdb.set_trace()
+#        col_tar_exc = [col for col in df.columns if col=='Tar_exc']
+#        col_tar_exc_format = {}
+#        for col in col_tar_exc:
+#            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
+#    
+#        col_tar_exc_format.update({'unsuper_res':lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
+#        #col_tl_avg = [col for col in df.columns if col=='TL_avg']
+#        html = (df.style.\
+#                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
+#                apply(highlight_tar_exc_featureset,axis=1).\
+#                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
+#        display(html)
+#    else:
+#        ####################################################
+#        # function for pandas styler. Highlight all max values of TL_avg
+#        def highlight_max(data):
+#            attr_max = 'background-color: #FBFF75'
+#            if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+#                is_max = data == data.max()
+#                return [attr_max if v else '' for v in is_max]
+#            else: 
+#                is_max = data.groupby('TL_avg').transform('max') == data
+#                return pd.DataFrame(np.where(is_max, attr_max, ''),
+#                                    index=data.index, columns=data.columns)
+#        # another function for pandas style. Highlight Tar_exc with green            
+#        def highlight_tar_exc_featureset(row):
+#            # initiate list with the size of the row (length 32) with empty styling
+#            lst = ['' for x in row.index]
+#            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+#            ser = row[:,'TL_avg']>row[:,'Tar_max']
+#            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
+#            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+#            k = 2
+#            for i, b in enumerate(ser):
+#                if(b):
+#                    lst[i+k] = 'background-color: #A4FB95'
+#                k = k + 3
+#            return lst
+#    
+#        # another function for pandas style. Highlight Tar_exc with green            
+#        def highlight_tl_super_same_featureset(row):
+#            # initiate list with the size of the row (length 32) with empty styling
+#            lst = ['' for x in row.index]
+#            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+#            ser = ((row[:,'TL_avg']>row[:,'Tar_sup']) | ((row[:,'Tar_sup']-row[:,'TL_avg'])<=0.01))
+#            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+#            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+#            k = 3
+#            for i, b in enumerate(ser):
+#                if(b):
+#                    lst[i+k] = 'background-color: #A4FB95'
+#                k = k + 3
+#            return lst
+#        #####################################################
+#        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
+#        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('','unsuper_res'))
+#        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
+#        #import pdb; pdb.set_trace()
+#        col_tar_exc = [col for col in df.columns if col[1]=='Tar_exc']
+#        col_tar_exc_format = {}
+#        for col in col_tar_exc:
+#            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
+#    
+#        col_tar_exc_format.update({('','unsuper_res'):lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
+#        col_tl_avg = [col for col in df.columns if col[1]=='TL_avg']
+#        html = (df.style.\
+#                apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_tl_avg]).\
+#                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
+#                apply(highlight_tar_exc_featureset,axis=1).\
+#                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
+#        display(html)
+#    
+#    if(filename is not None):
+#        with open('{}.html'.format(filename), 'w') as f:
+#            f.write(html.render())
+#    return df 
 
-    # specify the styles for the html output
+
+def returnDFwithTLResultsSelection(df_tl_results,feature,selected_estimator,selected_rows=None,filename=None):
+    df = df_tl_results.copy()
+    ###########################################################################################
+    # style functions as nested functions
+    # function for pandas styler. Highlight all max values of TL_avg
+    def highlight_max(data):
+        attr_max = 'background-color: #FBFF75'
+        if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+            is_max = data == data.max()
+            return [attr_max if v else '' for v in is_max]
+        else: 
+            is_max = data.groupby('TL_avg').transform('max') == data
+            return pd.DataFrame(np.where(is_max, attr_max, ''),
+                                index=data.index, columns=data.columns)
+    # another function for pandas style. Highlight Tar_exc with green            
+    def highlight_tar_exc(row):
+        # initiate list with the size of the row (length 32) with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+        ser = row[:,:,'TL_avg']>row[:,:,'Tar_max']
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
+        # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
+        k = 2
+        for i, b in enumerate(ser):
+            if(b):
+                lst[i+k] = 'background-color: #A4FB95'
+            k = k + 3
+        return lst
+    # another function for pandas style. Highlight Tar_exc with green            
+    def highlight_tl_super_same(row):
+        # initiate list with the size of the row (length 32) with empty styling
+        lst = ['' for x in row.index]
+        # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
+        ser = ((row[:,:,'TL_avg']>row[:,:,'Tar_sup']) | ((row[:,:,'Tar_sup']-row[:,:,'TL_avg'])<=0.01))
+        # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
+        # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
+        k = 3
+        for i, b in enumerate(ser):
+            if(b):
+                lst[i+k] = 'background-color: #A4FB95'
+            k = k + 3
+        return lst
+    ############################################################################################
+
     styles=[
         {'selector': 'th','props': [
             ('border-style', 'solid'),
             ('border-color', '#D3D3D3'),
             ('vertical-align','top'),
             ('text-align','center')]}]
-    
-    df = df_tl_results.xs(feature,axis=1,level=0).copy()
-    if(selected_estimator is not None):
-        print(f'Only displaying the results of {selected_estimator} using {feature} feature')
-        ####################################################
-        # another function for pandas style. Highlight Tar_exc with green            
-        def highlight_tar_exc_featureset(row):
-            # initiate list with the size of the row (length 32) with empty styling
-            lst = ['' for x in row.index]
-            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
-            ser = row['TL_avg']>row['Tar_max']
-            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
-            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
-            if(ser):
-                lst[2] = 'background-color: #A4FB95'
-            return lst
-    
-        # another function for pandas style. Highlight Tar_exc with green            
-        def highlight_tl_super_same_featureset(row):
-            # initiate list with the size of the row (length 32) with empty styling
-            lst = ['' for x in row.index]
-            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
-            ser = ((row['TL_avg']>row['Tar_sup']) | ((row['Tar_sup']-row['TL_avg'])<=0.01))
-            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
-            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
-            if(ser):
-                lst[3] = 'background-color: #A4FB95'
-            return lst
-        #####################################################
-    
-        df = df.xs(selected_estimator,axis=1,level=0).copy()
-        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
-        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('unsuper_res'))
-        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
-        #import pdb; pdb.set_trace()
-        col_tar_exc = [col for col in df.columns if col=='Tar_exc']
-        col_tar_exc_format = {}
-        for col in col_tar_exc:
-            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
-    
-        col_tar_exc_format.update({'unsuper_res':lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
-        #col_tl_avg = [col for col in df.columns if col=='TL_avg']
-        html = (df.style.\
-                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
-                apply(highlight_tar_exc_featureset,axis=1).\
-                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
-        display(html)
+
+    if(selected_rows is None):
+        if(selected_estimator is not None):
+            df = df.loc[:,(feature+[''], selected_estimator+[''],slice(None))]
+        else:
+            df = df.loc[:,(feature+[''], slice(None),slice(None))]
     else:
-        ####################################################
-        # function for pandas styler. Highlight all max values of TL_avg
-        def highlight_max(data):
-            attr_max = 'background-color: #FBFF75'
-            if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
-                is_max = data == data.max()
-                return [attr_max if v else '' for v in is_max]
-            else: 
-                is_max = data.groupby('TL_avg').transform('max') == data
-                return pd.DataFrame(np.where(is_max, attr_max, ''),
-                                    index=data.index, columns=data.columns)
-        # another function for pandas style. Highlight Tar_exc with green            
-        def highlight_tar_exc_featureset(row):
-            # initiate list with the size of the row (length 32) with empty styling
-            lst = ['' for x in row.index]
-            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
-            ser = row[:,'TL_avg']>row[:,'Tar_max']
-            # counter if True at Pos 0 (i==0) in ser then lst at pos 2 (i+k) has to be changed
-            # if i==1 then pos 6 (i+k). K has to be incremented by 3 for each execution of the loop
-            k = 2
-            for i, b in enumerate(ser):
-                if(b):
-                    lst[i+k] = 'background-color: #A4FB95'
-                k = k + 3
-            return lst
-    
-        # another function for pandas style. Highlight Tar_exc with green            
-        def highlight_tl_super_same_featureset(row):
-            # initiate list with the size of the row (length 32) with empty styling
-            lst = ['' for x in row.index]
-            # get the positions where TL_avg is bigger than Tar_max. pd.Series with length 8
-            ser = ((row[:,'TL_avg']>row[:,'Tar_sup']) | ((row[:,'Tar_sup']-row[:,'TL_avg'])<=0.01))
-            # counter if True at Pos 0 (i==0) in ser then lst at pos 3 (i+k) has to be changed
-            # if i==1 then pos 7 (i+k). K has to be incremented by 3 for each execution of the loop
-            k = 3
-            for i, b in enumerate(ser):
-                if(b):
-                    lst[i+k] = 'background-color: #A4FB95'
-                k = k + 3
-            return lst
-        #####################################################
-        f1 = [round(value['f1'],3) for k,value in candsets_unsuper_results.items()]
-        unsuper_res_ser = pd.Series(f1,index=candsets_unsuper_results.keys(),name=('','unsuper_res'))
-        df = pd.merge(df,unsuper_res_ser,how='left',left_on='Target',right_index=True)
-        #import pdb; pdb.set_trace()
-        col_tar_exc = [col for col in df.columns if col[1]=='Tar_exc']
-        col_tar_exc_format = {}
-        for col in col_tar_exc:
-            col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
-    
-        col_tar_exc_format.update({('','unsuper_res'):lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
-        col_tl_avg = [col for col in df.columns if col[1]=='TL_avg']
-        html = (df.style.\
-                apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_tl_avg]).\
-                apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
-                apply(highlight_tar_exc_featureset,axis=1).\
-                apply(highlight_tl_super_same_featureset,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
-        display(html)
-    
+        if(selected_estimator is not None):
+            df = df.loc[selected_rows,(feature+[''], selected_estimator+[''],slice(None))]
+        else:
+            df = df.loc[selected_rows,(feature+[''], slice(None),slice(None))]    
+    col_tar_exc = [col for col in df.columns if col[2]=='Tar_exc']
+    col_tar_exc_format = {}
+    for col in col_tar_exc:
+        col_tar_exc_format.update({col:lambda x: '<b>{0:g}</b>'.format(x) if (not math.isnan(float(x))) else '-'})
+
+    col_tar_exc_format.update({('','','unsuper_res'):lambda x: '<font color=\'#00938B\'><b>{}</b></font>'.format(round(x,3))})
+    col_tl_avg = [col for col in df.columns if col[2]=='TL_avg']
+    html = (df.style.\
+            apply(highlight_max,axis=1,subset=pd.IndexSlice[:,col_tl_avg]).\
+            apply(lambda x: ['background: #FF7070' if float(v) < x.iloc[-1] else '' for v in x], axis=1).\
+            apply(highlight_tar_exc,axis=1).\
+            apply(highlight_tl_super_same,axis=1)).set_table_styles(styles).set_precision(3).format(col_tar_exc_format)
+
+    display(html)
     if(filename is not None):
         with open('{}.html'.format(filename), 'w') as f:
             f.write(html.render())
-    return df 
-
+    return df
 #%%
 #### Quantifying model change ####
 
@@ -2004,7 +2435,7 @@ def getDenseFeatureForCombo(combo,dense_features_dict):
 
 # get df with model parameters comparison at start and end
     
-def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,selected_qs=None,clf='rf',display_feature_importance=True,filename=None):
+def createDFModelChange(atlx_results,al_unsup_results,candsets_super_results,dense_features_dict,selected_qs=None,clf='rf',display_feature_importance=True,filename=None):
     data = {}
     d = atlx_results
     passive_res = candsets_super_results
@@ -2024,6 +2455,9 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     f1_test_start = round(np.mean(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[0],3)
                     f1_test_end = round(np.mean(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[-1],3)
                     delta_f1_test = f1_test_end - f1_test_start
+                    f1_test_end_random = round(np.mean(d[combo][clf]['random'][ws]['test_f1_scores'],axis=0)[-1],3)
+                    f1_std_end_random = round(np.std(d[combo][clf]['random'][ws]['test_f1_scores'],axis=0)[-1],3)
+                    delta_f1_to_random = f1_test_end - f1_test_end_random
                     if(clf == 'lr'):
                             clf_old = 'logreg'
                     elif(clf == 'rf'):
@@ -2035,6 +2469,8 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     else:
                         clf_old = clf
                     delta_passive_end = f1_test_end - round(passive_res[target][clf_old]['f1'],3)
+                    delta_AL_end = f1_test_end - round(np.mean(al_unsup_results[target][clf][qs]['test_f1_scores'],axis=0)[-1],3)
+                    f1_std_AL_end = round(np.std(al_unsup_results[target][clf][qs]['test_f1_scores'],axis=0)[-1],3)
                     #f1_std_test_start = round(np.std(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[0],3)
                     f1_std_test_end = round(np.std(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[-1],3)
                     feature_import_start = np.around(np.mean(d[combo][clf][qs][ws]['model_feature_import_start'],axis=0),3)
@@ -2058,8 +2494,8 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     avg_depth_tree_start = round(np.mean(np.mean(d[combo][clf][qs][ws]['model_depth_tree_start'],axis=0)),3)
                     avg_depth_tree_end = round(np.mean(np.mean(d[combo][clf][qs][ws]['model_depth_tree_end'],axis=0)),3)
                     tuple_results = (n_ls_start,share_noise_pos_start,share_noise_neg_start,share_corrected_labels,
-                                     f1_train_start,f1_train_end,f1_test_start,f1_test_end,delta_f1_test,delta_passive_end,
-                                     f1_std_test_end,conf_start,conf_end,avg_depth_tree_start,
+                                     f1_train_start,f1_train_end,f1_test_start,f1_test_end,delta_f1_test,delta_AL_end,delta_f1_to_random,delta_passive_end,
+                                     f1_std_test_end,f1_std_AL_end,f1_std_end_random,conf_start,conf_end,avg_depth_tree_start,
                                      avg_depth_tree_end,top_5_feature_start,top_5_feature_end,
                                      ordered_attribute_import_start,ordered_attribute_import_end)
                     if(ws=='no_weighting'): 
@@ -2070,8 +2506,8 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                         data.update({(source,target,qs,'lp'):tuple_results})
 
         df = pd.DataFrame.from_dict(data,orient='index',columns=['ls','n_+','n_-','cor','f1_in_0','f1_in_-1',
-                                                             'f1_out_0','f1_out_-1','Δ_out_f1','Δ_pas_f1',
-                                                             'sig_out_-1','c_0','c_-1','adt_0','adt_-1',
+                                                             'f1_out_0','f1_out_-1','Δ_out_f1','Δ_AL_f1','Δ_R_f1','Δ_pas_f1',
+                                                             'sig_out','sig_AL','sig_R','c_0','c_-1','adt_0','adt_-1',
                                                              'top_5_feature_0','top_5_feature_-1',
                                                              'ordered_attr_import_0','ordered_attr_import_-1'])
         df.index = pd.MultiIndex.from_tuples(df.index,names=['Source','Target','QS','DA'])
@@ -2091,6 +2527,9 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     f1_test_start = round(np.mean(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[0],3)
                     f1_test_end = round(np.mean(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[-1],3)
                     delta_f1_test = f1_test_end - f1_test_start
+                    f1_test_end_random = round(np.mean(d[combo][clf]['random'][ws]['test_f1_scores'],axis=0)[-1],3)
+                    delta_f1_to_random = f1_test_end - f1_test_end_random
+                    f1_std_end_random = round(np.std(d[combo][clf]['random'][ws]['test_f1_scores'],axis=0)[-1],3)
                     if(clf == 'lr'):
                             clf_old = 'logreg'
                     elif(clf == 'rf'):
@@ -2102,6 +2541,8 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     else:
                         clf_old = clf
                     delta_passive_end = f1_test_end - round(passive_res[target][clf_old]['f1'],3)
+                    delta_AL_end = f1_test_end - round(np.mean(al_unsup_results[target][clf][qs]['test_f1_scores'],axis=0)[-1],3)
+                    f1_std_AL_end = round(np.std(al_unsup_results[target][clf][qs]['test_f1_scores'],axis=0)[-1],3)
                     #f1_std_test_start = round(np.std(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[0],3)
                     f1_std_test_end = round(np.std(d[combo][clf][qs][ws]['test_f1_scores'],axis=0)[-1],3)
                     feature_import_start = np.around(np.mean(d[combo][clf][qs][ws]['model_feature_import_start'],axis=0),3)
@@ -2125,8 +2566,8 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                     avg_depth_tree_start = round(np.mean(np.mean(d[combo][clf][qs][ws]['model_depth_tree_start'],axis=0)),3)
                     avg_depth_tree_end = round(np.mean(np.mean(d[combo][clf][qs][ws]['model_depth_tree_end'],axis=0)),3)
                     tuple_results = (n_ls_start,share_noise_pos_start,share_noise_neg_start,share_corrected_labels,
-                                     f1_train_start,f1_train_end,f1_test_start,f1_test_end,delta_f1_test,delta_passive_end,
-                                     f1_std_test_end,conf_start,conf_end,avg_depth_tree_start,
+                                     f1_train_start,f1_train_end,f1_test_start,f1_test_end,delta_f1_test,delta_AL_end,delta_f1_to_random,delta_passive_end,
+                                     f1_std_test_end,f1_std_AL_end,f1_std_end_random,conf_start,conf_end,avg_depth_tree_start,
                                      avg_depth_tree_end,top_5_feature_start,top_5_feature_end,
                                      ordered_attribute_import_start,ordered_attribute_import_end)
                     if(ws=='no_weighting'): 
@@ -2137,22 +2578,22 @@ def createDFModelChange(atlx_results,candsets_super_results,dense_features_dict,
                         data.update({(source,target,qs,'lp'):tuple_results})
 
         df = pd.DataFrame.from_dict(data,orient='index',columns=['ls','n_+','n_-','cor','f1_in_0','f1_in_-1',
-                                                             'f1_out_0','f1_out_-1','Δ_out_f1','Δ_pas_f1',
-                                                             'sig_out_-1','c_0','c_-1','adt_0','adt_-1',
+                                                             'f1_out_0','f1_out_-1','Δ_out_f1','Δ_AL_f1','Δ_R_f1','Δ_pas_f1',
+                                                             'sig_out','sig_AL','sig_R','c_0','c_-1','adt_0','adt_-1',
                                                              'top_5_feature_0','top_5_feature_-1',
                                                              'ordered_attr_import_0','ordered_attr_import_-1'])
         df.index = pd.MultiIndex.from_tuples(df.index,names=['Source','Target','QS','DA'])
     
     if(display_feature_importance):
-        styleDFModelChange(df,filename)
+        styleDFModelChange(df,False,filename)
     else:
         df_subset = df.drop(columns=['top_5_feature_0', 'top_5_feature_-1',
                                      'ordered_attr_import_0', 'ordered_attr_import_-1'])
-        styleDFModelChange(df_subset,filename)
+        styleDFModelChange(df_subset,False,filename)
 
     return df
 
-def styleDFModelChange(df,filename=None):
+def styleDFModelChange(df,ix_subset=False,filename=None):
     styles=[{'selector': 'th','props': [
         ('border-style', 'solid'),
         ('border-color', '#D3D3D3'),
@@ -2179,6 +2620,18 @@ def styleDFModelChange(df,filename=None):
             is_greater = data > thr
             return pd.DataFrame(np.where(is_greater, attr, ''),
                                 index=data.index, columns=data.columns)
+    
+    def highlight_below_x(data,thr,color= 'yellow'):
+        attr = 'background-color: {}'.format(color)
+
+        if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+            is_greater = data < thr
+            return [attr if v else '' for v in is_greater]
+        else: 
+            is_greater = data < thr
+            return pd.DataFrame(np.where(is_greater, attr, ''),
+                                index=data.index, columns=data.columns)
+            
     def highlight_min(data,color= 'yellow'):
         attr = 'background-color: {}'.format(color)
 
@@ -2189,11 +2642,41 @@ def styleDFModelChange(df,filename=None):
             is_min = data.groupby(level=[0,1]).transform('min') == data
             return pd.DataFrame(np.where(is_min, attr, ''),
                                 index=data.index, columns=data.columns)
+            
+    if(ix_subset):
+        html = (df.style.apply(lambda x: highlight_exceed_x(x,thr=0,color='#ff00d9'),axis=None,subset=pd.IndexSlice[:, ['Δ_pas_f1']]).\
+                                                            apply(highlight_min,axis=1,subset=pd.IndexSlice[:, ['sig_out','sig_AL','sig_R']]).\
+                                                            apply(lambda x: highlight_exceed_x(x,thr=0.01,color='#66FF99'),axis=None,subset=pd.IndexSlice[:, ['Δ_AL_f1']]).\
+                                                            apply(lambda x: highlight_exceed_x(x,thr=0.01,color='#66FF99'),axis=None,subset=pd.IndexSlice[:, ['Δ_R_f1']]).\
+                                                            apply(lambda x: highlight_below_x(x,thr=0.01,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_out_f1']]).\
+                                                            apply(lambda x: highlight_below_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_R_f1']]).\
+                                                            apply(lambda x: highlight_below_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_AL_f1']]).\
+                                                            apply(lambda x: highlight_exceed_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['n_+','n_-']])).set_table_styles(styles).set_precision(3)
+    else:
+        html = (df.style.apply(highlight_min,axis=1,subset=pd.IndexSlice[:, ['sig_out','sig_AL','sig_R']]).\
+                apply(highlight_max,axis=None,subset=pd.IndexSlice[:, ['cor','f1_out_-1']]).\
+                apply(lambda x: highlight_exceed_x(x,thr=0.01,color='#66FF99'),axis=None,subset=pd.IndexSlice[:, ['Δ_AL_f1']]).\
+                apply(lambda x: highlight_exceed_x(x,thr=0.01,color='#66FF99'),axis=None,subset=pd.IndexSlice[:, ['Δ_R_f1']]).\
+                apply(lambda x: highlight_exceed_x(x,thr=0,color='#ff00d9'),axis=None,subset=pd.IndexSlice[:, ['Δ_pas_f1']]).\
+                apply(lambda x: highlight_below_x(x,thr=0.01,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_out_f1']]).\
+                apply(lambda x: highlight_below_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_R_f1']]).\
+                apply(lambda x: highlight_below_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['Δ_AL_f1']]).\
+                apply(lambda x: highlight_exceed_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['n_+','n_-']])).set_table_styles(styles).set_precision(3)
+                #apply(highlight_max,axis=None,subset=pd.IndexSlice[:, ['cor','f1_out_-1','c_0','c_-1']]).\
+                
+    display(html)
     
-    html = (df.style.apply(highlight_max,axis=None,subset=pd.IndexSlice[:, ['cor','f1_out_-1','c_0','c_-1']]).\
-    apply(highlight_min,axis=None,subset=pd.IndexSlice[:, ['sig_out_-1']]).\
-    apply(lambda x: highlight_exceed_x(x,thr=0,color='red'),axis=None,subset=pd.IndexSlice[:, ['n_+','n_-']])).set_table_styles(styles).set_precision(3)
-        
+    if(filename is not None):
+        with open('{}.html'.format(filename), 'w') as f:
+            f.write(html.render())
+            
+def styleSimple(df,filename):
+    styles=[{'selector': 'th','props': [
+        ('border-style', 'solid'),
+        ('border-color', '#D3D3D3'),
+        ('vertical-align','top'),
+        ('text-align','center')]}]
+    html = df.style.set_table_styles(styles).set_precision(3)
     display(html)
     
     if(filename is not None):

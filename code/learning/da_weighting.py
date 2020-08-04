@@ -85,9 +85,9 @@ def iwe_BasedOnPredictProba(X,Z,classifier='lr'):
     XZ = np.concatenate((X, Z), axis=0)
 
     if(classifier=='lr'):
-        clf = LogisticRegression(random_state=42,solver='liblinear',max_iter=1000)
+        clf = LogisticRegression(random_state=42,solver='liblinear',max_iter=1000,class_weight='balanced')
     elif(classifier=='lrcv'):
-        clf = LogisticRegressionCV(random_state=42,cv=5,solver='liblinear',max_iter=1000)
+        clf = LogisticRegressionCV(random_state=42,cv=5,solver='liblinear',max_iter=1000,class_weight='balanced')
     elif(classifier=='xgb'):
         clf = xgb.XGBClassifier(random_state=42,objective="binary:logistic")
     else:
