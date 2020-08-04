@@ -156,6 +156,7 @@
 *.png
 *.jpg
 *.pdf
+*.db
 
 #files that shall not be excluded 
 #!**/TL_Experiments_Home_final.ipynb
